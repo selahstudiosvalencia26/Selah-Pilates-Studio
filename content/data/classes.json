@@ -1,0 +1,72 @@
+[
+  {
+    "slug": "sculpt",
+    "name": "Sculpt",
+    "group": "Group mat class",
+    "summary": "For strength.",
+    "level": "",
+    "focus": "",
+    "durationMinutes": 55,
+    "pricePhp": 350
+  },
+  {
+    "slug": "align",
+    "name": "Align",
+    "group": "Group mat class",
+    "summary": "",
+    "level": "",
+    "focus": "",
+    "durationMinutes": 55,
+    "pricePhp": 350
+  },
+  {
+    "slug": "unfold",
+    "name": "Unfold",
+    "group": "Group mat class",
+    "summary": "",
+    "level": "",
+    "focus": "",
+    "durationMinutes": 55,
+    "pricePhp": 350
+  },
+  {
+    "slug": "essentials",
+    "name": "Essentials",
+    "group": "Group mat class",
+    "summary": "Best for beginners.",
+    "level": "Beginners",
+    "focus": "",
+    "durationMinutes": 55,
+    "pricePhp": 350
+  },
+  {
+    "slug": "ease",
+    "name": "Ease",
+    "group": "Group mat class",
+    "summary": "For seniors.",
+    "level": "Seniors",
+    "focus": "",
+    "durationMinutes": 55,
+    "pricePhp": 350
+  },
+  {
+    "slug": "solo",
+    "name": "Solo Class",
+    "group": "Private reformer session",
+    "summary": "A private reformer session, just for you.",
+    "level": "",
+    "focus": "",
+    "durationMinutes": 55,
+    "pricePhp": 900
+  },
+  {
+    "slug": "duet",
+    "name": "Duet Class",
+    "group": "Private reformer session",
+    "summary": "A private reformer session for two.",
+    "level": "",
+    "focus": "",
+    "durationMinutes": 55,
+    "pricePhp": 1600
+  }
+]

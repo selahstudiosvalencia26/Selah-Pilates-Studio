@@ -1,0 +1,21 @@
+{
+  "questions": [
+    {
+      "id": "mode",
+      "ask": "What do people book?",
+      "choices": [
+        { "value": "venue", "label": "A place or room for an event" },
+        { "value": "classes", "label": "A slot in a class" }
+      ]
+    },
+    {
+      "id": "deposit",
+      "ask": "Must customers pay a deposit to get the date?",
+      "when": { "id": "mode", "is": "venue" },
+      "choices": [
+        { "value": "yes", "label": "Yes, the date is theirs only after they pay" },
+        { "value": "no", "label": "No, the date is theirs when I say yes" }
+      ]
+    }
+  ]
+}

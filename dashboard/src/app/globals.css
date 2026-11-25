@@ -1,0 +1,415 @@
+@import "tailwindcss";
+
+/*
+  The dashboard's look. Systems never write a colour by hand: they use these variables, and so they get light and dark
+  for free. Only --accent changes for each client (see docs/product/modular-dashboard.md, "Branding").
+
+  Light and dark. With no choice made, it follows the device. A person's choice (the switch in the menu) is kept in a
+  cookie and written onto <html data-theme="light|dark">, which wins over the device setting. A token must be defined
+  in every block below; tests/theme.test.ts checks it.
+*/
+:root {
+  color-scheme: light;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff; /* text on top of the accent: white or near-black, picked by contrast (see branding) */
+  --accent-ink: var(--accent-ink-light, #2563eb); /* the accent as text on the page: darker in light mode so it stays readable */
+  --background: #f6f7f9;
+  --card: #ffffff;
+  --card-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
+  --surface: #eceff3;
+  --border: #d5dae1; /* hairlines between things */
+  --border-strong: #858d9a; /* the edge of a control you can use (3 to 1 against the page, so it can be seen) */
+  --selected: rgba(15, 20, 25, 0.07); /* the page you are on, and a pressed row */
+  --hover: rgba(15, 20, 25, 0.04);
+  --text: #0f1419;
+  --text-soft: #4b5563;
+  --success: #15803d; /* done, paid, confirmed */
+  --warning: #a16207; /* waiting, near a limit */
+  --danger: #b91c1c; /* failed, cancelled, needs help */
+  --scrim: rgb(15 20 25 / 0.45); /* the dim layer behind a sheet or a dialog */
+  --sidebar: #e6e9ee;
+  --sidebar-border: #d3d8df;
+  --sidebar-text: #4b5563;
+  --sidebar-muted: #566070;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --accent-ink: var(--accent-ink-dark, #3c74ed);
+    --background: #0b0d12;
+    --card: #12151b;
+    --card-shadow: none;
+    --surface: #171b22;
+    --border: #252a33;
+    --border-strong: #6b7380;
+    --selected: rgba(255, 255, 255, 0.08);
+    --hover: rgba(255, 255, 255, 0.045);
+    --text: #f3f4f6;
+    --text-soft: #a0a7b4;
+    --success: #4ade80;
+    --warning: #facc15;
+    --danger: #f87171;
+    --scrim: rgb(0 0 0 / 0.6); /* the dim layer behind a sheet or a dialog */
+    --sidebar: #030406;
+    --sidebar-border: #1c2028;
+    --sidebar-text: #9aa2af;
+    --sidebar-muted: #8a929f;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --accent-ink: var(--accent-ink-dark, #3c74ed);
+  --background: #0b0d12;
+  --card: #12151b;
+  --card-shadow: none;
+  --surface: #171b22;
+  --border: #252a33;
+  --border-strong: #6b7380;
+  --selected: rgba(255, 255, 255, 0.08);
+  --hover: rgba(255, 255, 255, 0.045);
+  --text: #f3f4f6;
+  --text-soft: #a0a7b4;
+  --success: #4ade80;
+  --warning: #facc15;
+  --danger: #f87171;
+  --scrim: rgb(0 0 0 / 0.6); /* the dim layer behind a sheet or a dialog */
+  --sidebar: #030406;
+  --sidebar-border: #1c2028;
+  --sidebar-text: #9aa2af;
+  --sidebar-muted: #8a929f;
+}
+
+@theme inline {
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-ink: var(--accent-ink);
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-selected: var(--selected);
+  --color-hover: var(--hover);
+  --color-text: var(--text);
+  --color-text-soft: var(--text-soft);
+  --color-scrim: var(--scrim);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  background: var(--sidebar); /* the frame colour, so nothing lighter shows below or beside the page panel */
+  color: var(--text);
+}
+
+/*
+  Everything clickable shows the pointing hand, everywhere, with no work for a system: real links and buttons get it
+  here. (Use a real <a> or <button>, never a clickable <div>.) What is switched off shows it cannot be used.
+*/
+@layer base {
+  a[href],
+  button:not(:disabled),
+  summary,
+  select:not(:disabled),
+  label[for],
+  [role="button"]:not([aria-disabled="true"]),
+  [role="switch"]:not(:disabled),
+  [role="radio"]:not(:disabled),
+  [role="tab"]:not([aria-disabled="true"]),
+  input:is([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="file"]):not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  input:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/*
+  A preview that shows a different accent inside the page (the Branding screen). The accent text colour is worked out
+  from the accent chosen there, for the light or the dark page, so the preview reads exactly as the real thing will.
+*/
+.brand-preview {
+  --accent-ink: var(--accent-ink-light, #2563eb);
+}
+:root[data-theme="dark"] .brand-preview {
+  --accent-ink: var(--accent-ink-dark, #3c74ed);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brand-preview {
+    --accent-ink: var(--accent-ink-dark, #3c74ed);
+  }
+}
+
+/* The hue strip in the colour picker: a native slider (keyboard and touch work for free), drawn to match. */
+.hue-slider {
+  appearance: none;
+  height: 14px;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 999px;
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.hue-slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 22px;
+  width: 22px;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  background: transparent;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.35);
+}
+.hue-slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  background: transparent;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.35);
+}
+.hue-slider:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* The loading placeholder waits 150 ms before it appears, so a fast page never flashes it. */
+@keyframes skeleton-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.skeleton-wrap {
+  animation: skeleton-in 0.2s ease-out 0.15s both;
+}
+
+/* The parts the browser draws itself still carry the design: selection, scrollbars, numbers and headings. */
+::selection {
+  background: color-mix(in oklab, var(--accent) 28%, transparent);
+}
+
+/*
+  Scrollbars (decided 2026-11-21). The page column has none: nothing is drawn and no room is reserved, so the panel reaches the
+  edge of the window and the width never changes. Scrolling is unchanged: wheel, trackpad, touch and keyboard all work.
+  Other scrolling boxes keep the browser's own scrollbar, with the page keeping room for it (scrollbar-gutter), so content does
+  not jump sideways when a page gets longer or shorter.
+*/
+html {
+  scrollbar-gutter: stable;
+}
+.frame-scroll {
+  scrollbar-width: none;
+}
+.frame-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* The side menu rarely needs to scroll, and a scrollbar there would shift its icons, so it scrolls without showing one. */
+.scroll-quiet {
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+.scroll-quiet::-webkit-scrollbar {
+  display: none;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+
+input,
+select,
+textarea {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+  Switching light and dark: the whole page crossfades (the View Transitions API, see ThemeToggle). It is the same for
+  the shell and every system, because they all use the tokens above. No page needs its own transition code.
+*/
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+  animation-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/*
+  Open and close for every <details> (People rows, "Customize", the builder's rows): the content slides open instead of
+  jumping. Supported in current Chrome and Edge. Elsewhere it opens at once, which is fine. Reduced motion: no slide.
+*/
+:root {
+  interpolate-size: allow-keywords;
+}
+details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 0.22s cubic-bezier(0.2, 0, 0, 1), content-visibility 0.22s allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  details::details-content {
+    transition: none;
+  }
+}
+
+/* A row that was just added slides in from just above, so the person sees where it went. */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.row-in {
+  animation: row-in 0.26s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* A card: white on the grey page in light mode, a step lighter than the page in dark. One quiet shadow, one radius. */
+@utility card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+}
+
+/*
+  The phone menu sheet slides in from the right and its backdrop fades, then both reverse on close. Transform and opacity
+  only, 220 ms. Reduced motion turns it off (see above). Add class "sheet" to a <dialog> that should do the same.
+*/
+dialog.sheet {
+  transform: translateX(100%);
+  transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1), overlay 0.22s allow-discrete, display 0.22s allow-discrete;
+}
+dialog.sheet[open] {
+  transform: none;
+}
+dialog.sheet::backdrop {
+  opacity: 0;
+  transition: opacity 0.22s ease, overlay 0.22s allow-discrete, display 0.22s allow-discrete;
+}
+dialog.sheet[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  dialog.sheet[open] {
+    transform: translateX(100%);
+  }
+  dialog.sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+/* The placeholder that covers the old page while a menu link waits for its page (src/shell/frame/NavPending.tsx). It waits a
+   moment, so a quick page never flashes it, then fades in. Opacity only. */
+@keyframes pending-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.pending-cover {
+  animation: pending-in 160ms ease-out 140ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pending-cover {
+    animation: none;
+  }
+}
+
+/*
+  The toolbox's Select, as it opens (src/kit/Select.tsx): a popover drops in on a computer and a sheet slides up on a phone. Opacity and
+  transform only, short, and still for people who ask for less motion.
+*/
+@keyframes kit-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes kit-pop-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes kit-sheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes kit-fade {
+  from {
+    opacity: 0;
+  }
+}
+.kit-pop {
+  animation: kit-pop 150ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.kit-pop-up {
+  animation: kit-pop-up 150ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.kit-sheet {
+  animation: kit-sheet 240ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.kit-fade {
+  animation: kit-fade 200ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kit-pop,
+  .kit-pop-up,
+  .kit-sheet,
+  .kit-fade {
+    animation: none;
+  }
+}
+
+/* The Save bar is always at the bottom of the page, however short the page is: every box around it fills the height. */
+main:has([data-savebar]),
+main :has([data-savebar]) {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}

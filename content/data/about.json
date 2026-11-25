@@ -1,0 +1,28 @@
+{
+  "header": {
+    "title": "A calm place to move",
+    "text": "Mat and reformer pilates in Valencia City, Bukidnon. Join a group mat class, from Essentials for beginners to Sculpt for strength and Ease for seniors, or book a private Solo or Duet reformer session tailored to you."
+  },
+  "method": {
+    "title": "Six ideas behind pilates",
+    "text": "Pilates is built on a few simple ideas. They shape every move.",
+    "items": [
+      { "title": "Concentration", "text": "Give each move your full attention." },
+      { "title": "Control", "text": "Move on purpose, never in a rush." },
+      { "title": "Centering", "text": "Every move starts from your core." },
+      { "title": "Flow", "text": "Glide smoothly from one move to the next." },
+      {
+        "title": "Precision",
+        "text": "Small, exact moves matter more than big ones."
+      },
+      { "title": "Breathing", "text": "Let a deep breath lead each move." }
+    ]
+  },
+  "name": {
+    "text": "Selah is a word often read as a pause, a moment to stop and reflect. Our slogan, Strength in the pause, grows from the same idea.",
+    "note": "The full studio story is coming soon."
+  },
+  "team": {
+    "note": "Her story is coming soon."
+  }
+}

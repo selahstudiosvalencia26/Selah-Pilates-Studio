@@ -1,0 +1,109 @@
+{
+  "hero": {
+    "text": "Mat and reformer pilates in Valencia City, Bukidnon.",
+    "cta": "Book your session",
+    "pointsTitle": "We do not move to tire the body.",
+    "points": [
+      "Move with care.",
+      "Breathe deeply.",
+      "Build strength slowly."
+    ],
+    "secondCta": "See classes"
+  },
+  "about": {
+    "title": "A calm place to move",
+    "text": [
+      "Mat and reformer pilates in Valencia City, Bukidnon.",
+      "Join a group mat class, from Essentials for beginners to Sculpt for strength and Ease for seniors, or book a private Solo or Duet reformer session tailored to you."
+    ],
+    "storyNote": "The studio story is coming soon."
+  },
+  "benefits": {
+    "title": "What pilates can do for you",
+    "text": "Gentle movement with real benefits for your body and mind.",
+    "items": [
+      {
+        "title": "Stronger core",
+        "text": "Slow, careful movements work the muscles around your middle."
+      },
+      {
+        "title": "Better posture",
+        "text": "Stand and sit taller as your back and shoulders get stronger."
+      },
+      {
+        "title": "More flexibility",
+        "text": "Stretch and loosen tight spots a little more each class."
+      },
+      {
+        "title": "Calm and balance",
+        "text": "Focus on your breath and leave the day behind for a while."
+      }
+    ]
+  },
+  "classes": {
+    "title": "Classes",
+    "text": "Find a class that fits you.",
+    "intro": "Group mat classes and private reformer sessions.",
+    "cta": "See all classes"
+  },
+  "faq": {
+    "title": "Quick answers",
+    "items": [
+      {
+        "q": "Do I need to be flexible?",
+        "a": "No. Flexibility grows as you practise. Every move can be made easier or harder."
+      },
+      {
+        "q": "Is pilates good for beginners?",
+        "a": "Yes. It is low-impact, and you can start slowly and build up."
+      },
+      {
+        "q": "What if I have an injury or am pregnant?",
+        "a": "Tell your instructor before class so they can change the moves for you. Ask your doctor first if you are unsure."
+      },
+      {
+        "q": "How do I book a class?",
+        "a": "Use the Book a session button and follow the steps there."
+      },
+      {
+        "q": "How long is a class, and what does it cost?",
+        "a": "Every class is 55 minutes. Group mat classes are ₱350. Private sessions are ₱900 for Solo and ₱1,600 for Duet."
+      },
+      {
+        "q": "Which class should I start with?",
+        "a": "Try Essentials. It is best for beginners. Ease is made for seniors."
+      }
+    ]
+  },
+  "team": {
+    "title": "Meet the team",
+    "text": "The people behind every class."
+  },
+  "week": {
+    "title": "Next classes",
+    "text": "Pick a time and book your slot."
+  },
+  "first": {
+    "title": "Your first class",
+    "steps": [
+      {
+        "title": "Book online",
+        "text": "Pick a day and a time that suits you."
+      },
+      {
+        "title": "Keep your slot",
+        "text": "Pay the deposit, if one is asked."
+      },
+      {
+        "title": "Come in",
+        "text": "Bring water and wear clothes you can move in."
+      }
+    ]
+  },
+  "reviews": {
+    "title": "What clients say"
+  },
+  "blog": {
+    "title": "From the studio"
+  }
+}

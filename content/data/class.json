@@ -1,0 +1,27 @@
+{
+  "header": {
+    "title": "Find a class that fits you",
+    "text": "Pick the class that suits you. Not sure which one? Send us a message and we will help."
+  },
+  "levels": {
+    "title": "Find your class",
+    "items": [
+      { "title": "Essentials", "text": "Best for beginners." },
+      { "title": "Sculpt", "text": "For strength." },
+      { "title": "Ease", "text": "For seniors." }
+    ]
+  },
+  "firstClass": {
+    "title": "Before your first class",
+    "items": [
+      "Wear clothes you can stretch in.",
+      "Bring a bottle of water.",
+      "Tell your instructor about any injury or pregnancy.",
+      "Keep your meal light in the hour before class."
+    ]
+  },
+  "closing": {
+    "title": "Not sure where to start?",
+    "text": "Tell us about your body and your goals, and we will point you to the right class."
+  }
+}

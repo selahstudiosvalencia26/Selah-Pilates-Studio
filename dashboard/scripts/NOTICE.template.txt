@@ -1,0 +1,30 @@
+NOTICE AND LICENCE
+
+This dashboard (the "Software") was built by {{LICENSOR}} (the "Builder") for {{CLIENT}} (the "Client"). The Client has been given the code so they can run and look after their own business with it. This notice says how it may be used. It sits next to the signed agreement between the Builder and the Client. If the two ever disagree, the signed agreement wins.
+
+1. What the Client may do
+- Use the Software for the Client's own business.
+- Change it for that use, and have other developers work on it for that use.
+- Keep copies for backup.
+
+2. What the Client may not do
+- Sell, rent, share, give away or sublicense the Software, or any part of it, to anyone else.
+- Use it, or any part of it, to run another business's dashboard, or offer it to other businesses.
+- Copy its design, structure, screens or reusable parts into another product, such as a template, a kit or a similar dashboard.
+- Take it apart to recreate it as a product, or to work out how to make a copy of it.
+- Remove or hide this notice.
+- Use the Builder's name or branding without written permission.
+
+3. Who owns what
+The Builder keeps ownership of the Software's reusable parts, code libraries, templates, methods, tools and general know-how. The Client keeps ownership of its own data, content, logo and business information, and may take them out at any time.
+
+4. Other people's software
+Third-party software in the Software, such as the packages named in package.json, keeps its own licences. The Client follows those licences too.
+
+5. No extra promises
+The Software is provided as described in the signed agreement. This notice adds no other warranty.
+
+6. If the agreement ends
+If the agreement ends before the Client has paid in full, the Client's rights under this notice stop and the Client deletes its copies of the Software.
+
+The Builder may take action to protect these terms if they are broken.

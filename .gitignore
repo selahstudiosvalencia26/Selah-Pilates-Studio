@@ -1,0 +1,18 @@
+node_modules
+.next
+out
+.env*.local
+.env
+*.tsbuildinfo
+next-env.d.ts
+.next-check*
+
+# changes made in the dashboard while developing. Read by the local site only, never by a build for the live site
+content/local/
+
+# the dashboard (its own install and keys)
+dashboard/node_modules
+dashboard/.next
+dashboard/.env.local
+# Local bookings and settings (customer details): never commit.
+dashboard/.data/

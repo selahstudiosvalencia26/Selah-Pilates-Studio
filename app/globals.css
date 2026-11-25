@@ -1,0 +1,307 @@
+@import "tailwindcss";
+/* The dashboard is a separate app in its own folder. Its files are never scanned for styles here. */
+@source not "../dashboard";
+
+/* Pastel blue, calm and soft. Change colours here only. */
+@theme {
+  --color-canvas: #ffffff;
+  --color-page: #ffffff;
+  --color-sand: #d9e8f1;
+  --color-stone: #c5dbe9;
+  --color-ink: #1b2a35;
+  --color-muted: #3d5160;
+  --color-line: #bcd3e2;
+  --color-accent: #9cc3da;
+  --color-accent-ink: #1b2a35;
+
+  --radius-panel: 1.5rem;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-lora), ui-serif, Georgia, serif;
+
+  --text-body: 1.1875rem;
+  --text-title: clamp(2rem, 4vw, 3rem);
+  --text-hero: clamp(2.75rem, 7vw, 5rem);
+
+  --spacing-gutter: clamp(1.25rem, 3vw, 2.5rem);
+  --spacing-section: 4.5rem;
+  --container-page: 90rem;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --duration-fast: 180ms;
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.7;
+  }
+  /* The browser scrollbar never takes space from the layout, at any width. A slim indicator is drawn on top instead
+     (ScrollIndicator). It used to be hidden only from 768px up, so a narrow window showed two scrollbars at once. */
+  html {
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
+  /* Anything you can click shows the pointing hand. */
+  a[href],
+  button:not(:disabled),
+  summary,
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+}
+
+/* Scroll reveal: content fades in and eases up from below as it enters the screen. */
+.reveal {
+  opacity: 0;
+  transform: translateY(56px);
+  transition:
+    opacity 1s var(--ease-out),
+    transform 1.2s var(--ease-out);
+  will-change: opacity, transform;
+}
+.reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Home page intro, one continuous motion:
+   1. a small square appears at the centre,
+   2. it grows to fill the card while the photo settles,
+   3. the header and the words rise in one after another, just before the growth ends.
+   Kept light: no blur, a gentle photo zoom and no pause in between. Total: about 1.8s. Any click, key press or scroll skips it.
+   Keep INTRO_MS in IntroLock.tsx in sync. */
+@keyframes hero-intro {
+  0% {
+    opacity: 0;
+    clip-path: inset(calc(50% - 32px) calc(50% - 32px) round 16px);
+    animation-timing-function: ease-out;
+  }
+  18% {
+    opacity: 1;
+    clip-path: inset(calc(50% - 32px) calc(50% - 32px) round 16px);
+    animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 round var(--radius-panel));
+  }
+}
+@keyframes hero-photo {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes intro-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes intro-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hero-intro {
+  animation: hero-intro 1.25s backwards;
+}
+.hero-photo {
+  animation: hero-photo 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+}
+.intro-rise {
+  animation: intro-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.intro-nav {
+  animation: intro-drop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.85s backwards;
+}
+.intro-d1 {
+  animation-delay: 0.9s;
+}
+.intro-d2 {
+  animation-delay: 0.98s;
+}
+.intro-d3 {
+  animation-delay: 1.06s;
+}
+.intro-d4 {
+  animation-delay: 1.14s;
+}
+/* The intro plays once per visit. After that (for example going About, then Home) it is skipped. */
+html[data-intro="done"] .hero-intro,
+html[data-intro="done"] .hero-photo,
+html[data-intro="done"] .intro-rise,
+html[data-intro="done"] .intro-nav {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-intro,
+  .hero-photo,
+  .intro-rise,
+  .intro-nav {
+    animation: none;
+  }
+}
+
+/* No scrolling while the intro plays. */
+html.intro-lock,
+html.intro-lock body {
+  overflow: hidden;
+}
+
+/* OpenStreetMap, restyled to match the site: soft blue tiles, round controls, a dark pin. */
+.leaflet-container {
+  font-family: inherit;
+  background: var(--color-sand);
+  cursor: default;
+}
+.leaflet-tile-pane {
+  filter: grayscale(1) sepia(0.12) hue-rotate(175deg) saturate(1.3)
+    brightness(1.1) contrast(0.78);
+}
+.leaflet-bar {
+  border: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow:
+    0 6px 20px rgb(27 42 53 / 0.12),
+    0 0 0 1px var(--color-line);
+}
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  border: 0;
+  background: var(--color-page);
+  color: var(--color-ink);
+}
+.leaflet-bar a:hover {
+  background: var(--color-sand);
+}
+.leaflet-bar a + a {
+  border-top: 1px solid var(--color-line);
+}
+.leaflet-control-attribution {
+  border-radius: 9999px 0 0 0;
+  padding: 2px 10px 2px 12px;
+  background: rgb(255 255 255 / 0.7) !important;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.leaflet-control-attribution a {
+  color: var(--color-ink);
+}
+.map-pin {
+  background: transparent;
+  border: 0;
+}
+.map-pin span {
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: var(--color-ink);
+  border: 4px solid var(--color-page);
+  box-shadow: 0 4px 14px rgb(27 42 53 / 0.35);
+}
+.map-pin span::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-ink);
+  opacity: 0;
+  animation: map-pulse 2.4s ease-out infinite;
+}
+@keyframes map-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-pin span::after {
+    animation: none;
+  }
+}
+
+.map-pin-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  background: var(--color-page);
+  border: 1px solid var(--color-line);
+  color: var(--color-ink);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Anything you can click shows the pointing hand. This sits outside the layers so nothing can override it. */
+a[href],
+button:not(:disabled),
+summary,
+select,
+label[for],
+input[type="submit"]:not(:disabled),
+input[type="checkbox"],
+input[type="radio"],
+[role="button"]:not([aria-disabled="true"]),
+[role="tab"],
+[role="link"],
+[data-clickable] {
+  cursor: pointer;
+}
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* On dark blocks (the footer) the focus ring is light, so it can always be seen. */
+.on-dark :focus-visible {
+  outline-color: var(--color-page);
+}
