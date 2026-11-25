@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ClassPortal } from "@/components/ClassPortal";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { wrap } from "@/components/sections";
-import { bookHref } from "@/content/booking";
+import { askHref, bookHref } from "@/content/booking";
 import { classes } from "@/content/classes";
 import { inner } from "@/content/inner";
 import { pages } from "@/content/pages";
@@ -58,7 +58,7 @@ export default function ClassPage() {
           firstTitle={c.firstClass.title}
           firstItems={c.firstClass.items}
           online={bookHref === "/book"}
-          bookingElsewhere={bookHref}
+          bookingElsewhere={askHref}
           messenger={site.facebook ? messengerUrl(site.facebook) : null}
         />
         <div className="mt-20 grid gap-4 rounded-panel bg-sand p-6 sm:mt-24 sm:p-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end lg:gap-12">

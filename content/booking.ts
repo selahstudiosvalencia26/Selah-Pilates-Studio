@@ -7,8 +7,11 @@ export const bookingApi =
   process.env.NEXT_PUBLIC_DASHBOARD_URL ??
   (process.env.NODE_ENV === "development" ? "http://localhost:3101" : "");
 
-/** An outside booking link set in Site information wins over everything. */
-export const bookHref = site.bookingUrl ?? (bookingApi ? "/book" : "/contact");
+/** An outside booking link set in Site information wins over everything. Until online booking is on, "Book" shows the classes. */
+export const bookHref = site.bookingUrl ?? (bookingApi ? "/book" : "/class");
+
+/** Where to ask for a booking once someone is already looking at the classes. */
+export const askHref = site.bookingUrl ?? (bookingApi ? "/book" : "/contact");
 
 /** The Book link for one class: the booking page opens with that class already picked. */
 export const bookClassHref = (name: string) =>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { site } from "@/content/site";
-import { bookHref } from "@/content/booking";
+import { askHref, bookHref } from "@/content/booking";
 import { pages } from "@/content/pages";
 import { LinkButton } from "@/components/Button";
 import { NavLinks } from "@/components/NavLinks";
@@ -13,6 +13,8 @@ import { NavLinks } from "@/components/NavLinks";
 // A compact floating bar, centered and always fixed at the top.
 export function Navigation() {
   const pathname = usePathname();
+  // Already on the classes: the button asks for a booking rather than reloading the same page.
+  const book = pathname.startsWith("/class") ? askHref : bookHref;
   const [open, setOpen] = useState(false);
   // Only the first load of the home page plays the intro. Later page changes show the bar at once.
   const [intro] = useState(pathname === "/");
@@ -80,7 +82,7 @@ export function Navigation() {
 
           <div className="hidden lg:block lg:justify-self-end">
             <LinkButton
-              href={bookHref}
+              href={book}
               variant={clear ? "light" : "dark"}
               className="min-h-11 px-6 text-base"
             >
@@ -167,7 +169,7 @@ export function Navigation() {
           className={`mt-auto grid gap-3 pt-8 ${rise}`}
         >
           <LinkButton
-            href={bookHref}
+            href={book}
             variant="dark"
             className=" w-full"
             onClick={() => setOpen(false)}
