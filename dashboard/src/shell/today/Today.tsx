@@ -17,10 +17,12 @@ export default function Today({
   systems,
   installHref,
   warning,
+  canInvite = true,
 }: {
   name: string;
   systems: MenuItem[];
   installHref?: string;
+  canInvite?: boolean; // inviting staff is not available yet on a live site
   warning?: { words: string; href: string }; // something that needs the owner, such as the domain running out
 }) {
   // What this dashboard does not have yet, shown greyed out so the owner can see what exists. Not links: nothing can be opened.
@@ -31,11 +33,9 @@ export default function Today({
       hint: "So your team sees your name, not ours.",
       href: "/preview/settings",
     },
-    {
-      title: "Invite a staff member",
-      hint: "They sign in with a code sent to their email.",
-      href: "/preview/people",
-    },
+    ...(canInvite
+      ? [{ title: "Invite a staff member", hint: "They sign in with a code sent to their email.", href: "/preview/people" }]
+      : []),
     installHref
       ? {
           title: "Add what you need",

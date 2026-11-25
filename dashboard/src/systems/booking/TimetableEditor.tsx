@@ -95,8 +95,7 @@ export default function TimetableEditor({ initial, classes = [] }: { initial: Cl
     <div role="group" aria-label="Weekly schedule" className="grid gap-5">
       <p className="text-sm text-text-soft">
         Your week. Press <span className="font-medium text-text">Add</span> under a day. Press a time to change it. It saves by itself.
-        {classes.length > 0 && process.env.NODE_ENV === "production" && " Names, length and price come from your website's class list."}
-        {classes.length > 0 && process.env.NODE_ENV !== "production" && (
+        {classes.length > 0 && (
           <>
             {" "}
             Names, length and price come from{" "}

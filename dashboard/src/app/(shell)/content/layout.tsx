@@ -3,6 +3,7 @@ import PageHeader from "@/shell/frame/PageHeader";
 import SystemTabs from "@/shell/frame/SystemTabs";
 import { sectionsOf } from "@/shell/menu";
 import { loadSystems } from "@/shell/registry";
+import PublishBar from "@/systems/content/PublishBar";
 
 // Website: what the public site shows. The tabs are the pages listed in the system's description file. Sign-in is not built yet,
 // so the sample owner stands in for the person.
@@ -24,7 +25,10 @@ export default function WebsiteLayout({
       {found && sections.length > 1 && (
         <SystemTabs name={found.name} sections={sections} />
       )}
-      <div className="sm:pt-5">{children}</div>
+      <div className="sm:pt-5">
+        {process.env.NODE_ENV === "production" && <PublishBar />}
+        {children}
+      </div>
     </>
   );
 }

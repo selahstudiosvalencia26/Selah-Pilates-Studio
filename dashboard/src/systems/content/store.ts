@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { databaseOn, readDocument, writeDocument } from "@/kit/database";
 import { PAGES, type PageKind } from "./site/pages";
 import { classListSchema, type ClassList } from "./site/classList";
 import { photosSchema, type Photos } from "./photoRules";
@@ -32,7 +33,13 @@ const localDir = () =>
     process.env.WEBSITE_CONTENT_DIR ?? join(websiteRoot(), "content", "local"),
   );
 
+// With the database set up (a live site), saves go there and the committed file is only the starting point. The website picks the
+// saved words up when it is published (see ./publish.ts).
 async function read<T>(file: string, parse: (v: unknown) => T): Promise<T> {
+  if (databaseOn()) {
+    const saved = await readDocument(file);
+    return parse(saved !== undefined ? saved : JSON.parse(await readFile(join(committedDir(), file), "utf8")));
+  }
   let text: string;
   try {
     text = await readFile(join(localDir(), file), "utf8");
@@ -44,6 +51,7 @@ async function read<T>(file: string, parse: (v: unknown) => T): Promise<T> {
 
 // Write a whole file at once: to a temporary name, then renamed, so a stopped save never leaves half a file.
 async function write(file: string, value: unknown) {
+  if (databaseOn()) return writeDocument(file, value);
   await mkdir(localDir(), { recursive: true });
   const target = join(localDir(), file);
   await writeFile(

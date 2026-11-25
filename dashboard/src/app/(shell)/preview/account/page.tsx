@@ -41,6 +41,14 @@ function Section({
 
 export default async function AccountPage() {
   const status = await accountStatus();
+  if (!status && process.env.NODE_ENV === "production") {
+    return (
+      <>
+        <PageHeader title="Account" description="Your own sign-in details." />
+        <p className="text-sm text-text-soft">To change your password, ask the builder for now.</p>
+      </>
+    );
+  }
   if (!status) {
     return (
       <>

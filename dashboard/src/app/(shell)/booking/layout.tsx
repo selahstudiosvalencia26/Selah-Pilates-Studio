@@ -10,7 +10,7 @@ export default async function BookingLayout({ children }: { children: React.Reac
   const found = loadSystems().systems.find((s) => s.id === "booking");
   const { settings } = await readData();
   // A venue has no weekly classes, so it never shows that tab.
-  const sections = (found ? sectionsOf(found, permissionsOf([[EVERYTHING]])) : []).filter((s) => !(process.env.NODE_ENV === "production" && s.href === "/booking/classes")).filter((s) => settings.mode === "classes" || !["/booking/classes", "/booking/schedule"].includes(s.href));
+  const sections = (found ? sectionsOf(found, permissionsOf([[EVERYTHING]])) : []).filter((s) => settings.mode === "classes" || !["/booking/classes", "/booking/schedule"].includes(s.href));
   return (
     <>
       <PageHeader title="Bookings" description={settings.mode === "classes" ? "Who is booked into your classes." : "Requests, dates and deposits for your venue."} />

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { err, ok, type Result } from "@/kit/result";
+import { canSave } from "@/kit/session";
 import { hoursSchema, siteSchema } from "./schema";
 import { isPageKind, PAGES } from "./site/pages";
 import { PhotoError, savePhotoChanges, type Change } from "./photos";
@@ -20,9 +21,8 @@ import {
 } from "./store";
 import { z } from "zod";
 
-// Save what the owner typed. The same checks run here as in the form, because the form can be bypassed.
-// Nobody is signed in on a live site until real sign-in is connected (and saving there means publishing, which is not built yet),
-// so on a live site this refuses. It works while you build. Signed-in checks (content.edit) are added with sign-in.
+// Save what the owner typed. The same checks run here as in the form, because the form can be bypassed. On a live site every save
+// also asks, on the server, whether the database is set up and an owner is signed in.
 const NOT_CONNECTED = "Saving is not connected yet.";
 const firstProblem = (issues: { path: PropertyKey[]; message: string }[]) => {
   const i = issues[0];
@@ -32,7 +32,7 @@ const firstProblem = (issues: { path: PropertyKey[]; message: string }[]) => {
 export async function saveSite(
   input: unknown,
 ): Promise<Result<undefined> & { field?: string }> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  if (!(await canSave())) return err(NOT_CONNECTED);
   const parsed = siteSchema.safeParse(input);
   if (!parsed.success) {
     const p = firstProblem(parsed.error.issues);
@@ -54,7 +54,7 @@ export async function saveSite(
 export async function saveHours(
   input: unknown,
 ): Promise<Result<undefined> & { field?: string }> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  if (!(await canSave())) return err(NOT_CONNECTED);
   const parsed = hoursSchema.safeParse(input);
   if (!parsed.success) {
     const p = firstProblem(parsed.error.issues);
@@ -78,7 +78,7 @@ export async function savePage(
   kind: string,
   input: unknown,
 ): Promise<Result<undefined> & { field?: string }> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  if (!(await canSave())) return err(NOT_CONNECTED);
   if (!isPageKind(kind)) return err("That page is not known.");
   const parsed = PAGES[kind].schema.safeParse(input);
   if (!parsed.success) {
@@ -114,7 +114,7 @@ const changesSchema = z
   .max(PHOTO_LIMITS.perSave);
 
 export async function savePhotos(form: FormData): Promise<Result<undefined>> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  if (!(await canSave())) return err(NOT_CONNECTED);
   let changes: Change[];
   try {
     const raw = form.get("changes");
@@ -145,7 +145,7 @@ export async function savePhotos(form: FormData): Promise<Result<undefined>> {
 export async function saveClasses(
   input: unknown,
 ): Promise<Result<{ slugs: string[] }> & { field?: string }> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  if (!(await canSave())) return err(NOT_CONNECTED);
   const parsed = classListSchema.safeParse(input);
   if (!parsed.success) {
     const i = parsed.error.issues[0];
@@ -185,7 +185,7 @@ export async function saveList(
   listId: string,
   input: unknown,
 ): Promise<Result<{ slugs: string[] }> & { field?: string }> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  if (!(await canSave())) return err(NOT_CONNECTED);
   const def = listById(listId);
   if (!def) return err("That list is not known.");
   const parsed = listSchemaFor(def).safeParse(input);

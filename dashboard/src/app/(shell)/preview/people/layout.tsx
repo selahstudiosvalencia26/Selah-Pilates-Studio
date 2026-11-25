@@ -10,8 +10,8 @@ const PEOPLE_SECTIONS = [
 export default function PeopleLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <PageHeader title="People" description="Invite your team and choose what each person can do." />
-      <SystemTabs name="People" sections={PEOPLE_SECTIONS} />
+      <PageHeader title="People" description={process.env.NODE_ENV === "production" ? "Who can sign in." : "Invite your team and choose what each person can do."} />
+      {process.env.NODE_ENV !== "production" && <SystemTabs name="People" sections={PEOPLE_SECTIONS} />}
       {children}
     </>
   );

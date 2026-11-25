@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { readData } from "@/systems/booking/store";
 import ClassesForm from "@/systems/content/ClassesForm";
+import PublishBar from "@/systems/content/PublishBar";
 import { SaveGroup } from "@/systems/content/SaveGroup";
 import { readClasses, readPhotos } from "@/systems/content/store";
 
@@ -13,6 +14,7 @@ export default async function BookingClassListPage() {
   if (settings.mode !== "classes") redirect("/booking");
   return (
     <SaveGroup>
+      {process.env.NODE_ENV === "production" && <PublishBar />}
       <ClassesForm initial={classes} photos={photos} />
     </SaveGroup>
   );

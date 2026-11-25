@@ -2,14 +2,15 @@ import { describe, expect, it } from "vitest";
 import { openOnLive } from "./livePages";
 
 describe("pages open on the live site", () => {
-  it("opens the home page, and Bookings once the database is set up", () => {
+  it("opens only the home page until the database is set up", () => {
     expect(openOnLive("/preview", false)).toBe(true);
     expect(openOnLive("/booking", false)).toBe(false);
-    for (const path of ["/booking", "/booking/schedule", "/booking/settings", "/booking/new"]) expect(openOnLive(path, true)).toBe(true);
+    expect(openOnLive("/content", false)).toBe(false);
   });
-  it("keeps what is not online yet closed", () => {
-    for (const path of ["/preview/people", "/preview/settings", "/preview/account", "/content", "/bookings-other", "/booking/classes", "/booking/settings/emails"]) {
-      expect(openOnLive(path, true)).toBe(false);
+  it("opens everything once it is, except the practice pages", () => {
+    for (const path of ["/booking", "/content/about", "/preview/people", "/preview/settings/menu", "/preview/systems", "/preview/account"]) {
+      expect(openOnLive(path, true)).toBe(true);
     }
+    for (const path of ["/preview/components", "/preview/slow", "/preview/people/roles"]) expect(openOnLive(path, true)).toBe(false);
   });
 });

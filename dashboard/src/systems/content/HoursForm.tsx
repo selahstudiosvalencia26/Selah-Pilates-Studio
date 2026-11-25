@@ -138,7 +138,7 @@ export default function HoursForm({ initial }: { initial: HoursData }) {
       <p className="text-xs text-text-soft">
         Times use the studio&rsquo;s own clock (Philippine time).
       </p>
-      <SaveBar dirty={dirty} pending={pending} label="Save hours" message={error ? { text: error.message, bad: true } : saved ? { text: "Saved. Refresh the website to see it." } : null} />
+      <SaveBar dirty={dirty} pending={pending} label="Save hours" message={error ? { text: error.message, bad: true } : saved ? { text: process.env.NODE_ENV === "production" ? "Saved. Press Publish to put it on your website." : "Saved. Refresh the website to see it." } : null} />
     </form>
   );
 }

@@ -77,7 +77,7 @@ export function SaveGroup({
     setMessage(
       problems.length
         ? { text: problems[0], bad: true }
-        : { text: "Saved. Refresh the website to see it.", bad: false },
+        : { text: process.env.NODE_ENV === "production" ? "Saved. Press Publish to put it on your website." : "Saved. Refresh the website to see it.", bad: false },
     );
   };
 

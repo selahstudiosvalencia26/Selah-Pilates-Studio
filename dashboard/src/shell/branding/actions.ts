@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache";
 import { parseAvatar } from "@/shell/account/avatar";
 import { createLimiter, waitWords } from "@/kit/rateLimit";
 import { err, ok, type Result } from "@/kit/result";
+import { canSave } from "@/kit/session";
 import { z } from "zod";
 import { brandingInput } from "./branding";
-import { getBranding, savePracticeBranding } from "./server";
+import { getBranding, saveLook } from "./server";
 
 // Save the name, the accent colour and the logo. Checked again here on the server: the screen only helps.
-//  - On a live site nothing can be saved yet (nobody is signed in), so it says so. It only works while you build.
+//  - On a live site only a signed-in owner may save, with the database set up.
 //  - The shape is strict. The name and colour use the same rules as the screen (./branding.ts).
 //  - The logo is either left as it is (`keep`), removed (`null`), or a small WebP the browser drew again (./logoClient.ts). It is
 //    checked by its first bytes and its size (the same check as a profile photo), never trusted because the browser sent it.
@@ -24,8 +25,7 @@ const input = z.strictObject({
 });
 
 export async function saveBranding(raw: unknown): Promise<Result> {
-  if (process.env.NODE_ENV === "production")
-    return err("Saving is not connected yet.");
+  if (!(await canSave())) return err("Saving is not connected yet.");
   const parsed = input.safeParse(raw);
   if (!parsed.success)
     return err("Something is missing. Check the form and try again.");
@@ -51,7 +51,7 @@ export async function saveBranding(raw: unknown): Promise<Result> {
   }
 
   try {
-    savePracticeBranding({
+    await saveLook({
       name: look.data.name,
       accent: look.data.accent,
       logoUrl,

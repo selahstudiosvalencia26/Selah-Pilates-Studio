@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { databaseOn, uploadPhoto } from "@/kit/database";
 import {
   ALT_MAX,
   isWebp,
@@ -110,11 +111,15 @@ export async function savePhotoChanges(
 
   // Write the new files, then the list. A replaced photo's old file is left where it is: the live site may still use it until the
   // change is published, so nothing is deleted here. (Tidying old files is a builder job.)
-  await mkdir(uploadsDir(), { recursive: true });
-  for (const [name, bytes] of fresh) {
-    const target = join(uploadsDir(), name);
-    await writeFile(`${target}.tmp`, bytes);
-    await rename(`${target}.tmp`, target);
+  if (databaseOn()) {
+    for (const [name, bytes] of fresh) await uploadPhoto(name, bytes);
+  } else {
+    await mkdir(uploadsDir(), { recursive: true });
+    for (const [name, bytes] of fresh) {
+      const target = join(uploadsDir(), name);
+      await writeFile(`${target}.tmp`, bytes);
+      await rename(`${target}.tmp`, target);
+    }
   }
   await writePhotos(parsed.data);
   return parsed.data;

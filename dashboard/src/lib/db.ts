@@ -48,3 +48,29 @@ export async function callFunction<T>(name: string, args: Record<string, unknown
   check(error, "write");
   return data as T;
 }
+
+// Settings and website words are kept as whole documents, one row each. A table that is not made yet reads as "nothing saved", so
+// pages still open with their starting words; saving then says what is missing.
+const NO_TABLE = ["PGRST205", "42P01"];
+
+export async function readDocument(name: string): Promise<unknown> {
+  const { data, error } = await client().from("dashboard_documents").select("data").eq("name", name).maybeSingle();
+  if (error && NO_TABLE.includes(error.code ?? "")) return undefined;
+  check(error, "read");
+  return (data as { data?: unknown } | null)?.data;
+}
+
+export async function writeDocument(name: string, value: unknown): Promise<void> {
+  const { error } = await client().from("dashboard_documents").upsert({ name, data: value, updated_at: new Date().toISOString() });
+  check(error, "write");
+}
+
+// Website photos are public pictures, so their bucket is public. Only the server can add to it.
+const PHOTOS = "site-photos";
+
+export async function uploadPhoto(file: string, bytes: Uint8Array): Promise<void> {
+  const { error } = await client().storage.from(PHOTOS).upload(file, bytes, { contentType: "image/webp", upsert: true });
+  if (error) throw new Error("Database write failed (photo).");
+}
+
+export const photoBase = (): string => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim()}/storage/v1/object/public/${PHOTOS}/`;

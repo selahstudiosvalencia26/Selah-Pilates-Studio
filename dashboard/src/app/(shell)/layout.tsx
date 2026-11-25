@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { databaseOn } from "@/kit/database";
 import { authOn } from "@/lib/auth/config";
 import { currentUser } from "@/lib/auth/server";
 import { EVERYTHING, permissionsOf } from "@/kit/permissions";
@@ -46,25 +45,15 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   if (authOn() && !signedIn) redirect("/sign-in");
   if (!authOn() && process.env.NODE_ENV === "production") notFound();
 
-  // On the live site the menu offers only what saves online (the middleware closes the other pages). The frame never decides what
-  // is in the middle: it is not drawn again when someone clicks a menu item.
-  if (signedIn && process.env.NODE_ENV === "production") {
-    const look = await getBranding();
-    const booking = loadSystems().systems.filter((x) => x.id === "booking");
-    const menu = [TODAY, ...(databaseOn() ? buildMenu(booking, permissionsOf([[EVERYTHING]])) : [])];
-    return (
-      <Shell business={look.name} logoUrl={look.logoUrl} person={{ name: signedIn.email, role: "Owner", avatarUrl: null }} items={menu}>
-        {children}
-      </Shell>
-    );
-  }
   const [brand, avatarUrl] = await Promise.all([getBranding(), currentAvatar()]);
 
   const { systems } = loadSystems();
   const owner = permissionsOf([[EVERYTHING]]);
   const order = await getMenuOrder();
   const systemsPage = await isOwner(); // the Systems page is in the menu for the owner only
-  const items = [TODAY, ...applyOrder(buildMenu(systems, owner), order), PEOPLE_PAGE, SETTINGS_PAGE, ...(systemsPage ? [SYSTEMS_PAGE] : [])];
+  // Live, People is a plain list of who can sign in, so it has no Roles tab there.
+  const people = process.env.NODE_ENV === "production" ? { ...PEOPLE_PAGE, children: undefined } : PEOPLE_PAGE;
+  const items = [TODAY, ...applyOrder(buildMenu(systems, owner), order), people, SETTINGS_PAGE, ...(systemsPage ? [SYSTEMS_PAGE] : [])];
 
   return (
     <Shell business={brand.name} logoUrl={brand.logoUrl} person={{ name: signedIn?.email ?? "Sample Owner", role: "Owner", avatarUrl }} items={items}>

@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { z } from "zod";
+import { databaseOn, readDocument, writeDocument } from "./database";
 
 // The email settings the owner chooses: who emails come from, where staff alerts go, and which emails are switched off or on.
 // One place for the shell and every system. Kept in a small file while there is no database (EMAIL_DATA_DIR, or
@@ -20,11 +21,17 @@ export type EmailSettings = z.infer<typeof settingsSchema>;
 
 const file = () => join(resolve(process.env.EMAIL_DATA_DIR ?? join(process.cwd(), ".data", "email-data")), "email.json");
 
+const nothing = (): EmailSettings => ({ senderName: "", replyTo: "", staffTo: "", switches: {} });
+
 export async function readEmailSettings(): Promise<EmailSettings> {
+  if (databaseOn()) {
+    const saved = await readDocument("email-settings");
+    return saved === undefined ? nothing() : settingsSchema.parse(saved);
+  }
   try {
     return settingsSchema.parse(JSON.parse(await readFile(file(), "utf8")));
   } catch (e) {
-    if ((e as NodeJS.ErrnoException).code === "ENOENT") return { senderName: "", replyTo: "", staffTo: "", switches: {} };
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return nothing();
     throw e;
   }
 }
@@ -36,6 +43,7 @@ export function changeEmailSettings(change: (s: EmailSettings) => void): Promise
   const run = line.then(async () => {
     const settings = await readEmailSettings();
     change(settings);
+    if (databaseOn()) return writeDocument("email-settings", settings);
     const target = file();
     await mkdir(resolve(target, ".."), { recursive: true });
     await writeFile(`${target}.tmp`, `${JSON.stringify(settings, null, 2)}\n`, "utf8");

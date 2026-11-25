@@ -1,13 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAllowed, supabaseSettings } from "./config";
-import { bookingOnline, openOnLive } from "./livePages";
+import { databaseReady, openOnLive } from "./livePages";
 
 // Runs before every page: keeps the session fresh and sends anyone who is not signed in to the sign-in screen. Pages check again
 // on the server, so this is the first lock, not the only one.
 
-// Open to anyone: the sign-in screen, its tab icon, and the doors the website uses for booking (which have their own checks).
-const OPEN = ["/sign-in", "/brand-icon", "/api/booking"];
+// Open to anyone: the sign-in screen, its tab icon, and the doors the website uses (booking, and its own public words).
+const OPEN = ["/sign-in", "/brand-icon", "/api/booking", "/api/site-content"];
 
 export async function guardRequest(request: NextRequest): Promise<NextResponse> {
   const settings = supabaseSettings();
@@ -31,7 +31,7 @@ export async function guardRequest(request: NextRequest): Promise<NextResponse> 
   const open = OPEN.some((p) => path === p || path.startsWith(`${p}/`));
   if (open) return response;
   if (isAllowed(data.user?.email)) {
-    if (process.env.NODE_ENV !== "production" || path.startsWith("/api/") || openOnLive(path, bookingOnline())) return response;
+    if (process.env.NODE_ENV !== "production" || path.startsWith("/api/") || openOnLive(path, databaseReady())) return response;
     return NextResponse.redirect(new URL("/preview", request.url));
   }
 

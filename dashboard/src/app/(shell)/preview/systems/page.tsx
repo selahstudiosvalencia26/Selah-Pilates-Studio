@@ -69,7 +69,7 @@ export default async function SystemsPage() {
                   <span className="block text-[13px] text-text-soft">
                     {c.why} · used by {c.neededBy.join(", ")}
                   </span>
-                  {!c.connected && <span className={`block font-mono text-[13px] ${c.optional ? "text-text-soft" : "text-warning"}`}>{c.optional ? "To turn it on, add" : "Add"} to .env.local: {c.missing.join(", ")}</span>}
+                  {!c.connected && <span className={`block font-mono text-[13px] ${c.optional ? "text-text-soft" : "text-warning"}`}>{c.optional ? "To turn it on, add" : "Add"} {process.env.NODE_ENV === "production" ? "in Vercel" : "to .env.local"}: {c.missing.join(", ")}</span>}
                 </span>
                 <span className="text-[13px] text-text-soft">{c.connected ? "Connected" : c.optional ? "Optional" : "Not connected"}</span>
               </li>

@@ -186,7 +186,7 @@ export default function SiteForm({ initial }: { initial: SiteData }) {
           </div>
         </fieldset>
       ))}
-      <SaveBar dirty={dirty} pending={pending} message={error ? { text: error.message, bad: true } : saved ? { text: "Saved. Refresh the website to see it." } : null} />
+      <SaveBar dirty={dirty} pending={pending} message={error ? { text: error.message, bad: true } : saved ? { text: process.env.NODE_ENV === "production" ? "Saved. Press Publish to put it on your website." : "Saved. Refresh the website to see it." } : null} />
     </form>
   );
 }
