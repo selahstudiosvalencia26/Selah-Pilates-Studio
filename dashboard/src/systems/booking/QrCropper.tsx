@@ -91,13 +91,19 @@ export default function QrCropper({ src, onCancel, onDone }: Props) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- the picture the person just chose, still on their computer */}
           <img ref={image} src={src} alt="" draggable={false} onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} style={{ position: "absolute", left, top, width: shown.w, height: shown.h, maxWidth: "none" }} />
+          {/* Guides for centring: thirds, a middle cross and an even margin. On screen only, never part of the saved picture. */}
+          <svg aria-hidden viewBox={`0 0 ${VIEW} ${VIEW}`} className="pointer-events-none absolute inset-0 h-full w-full text-accent transition-opacity duration-200 starting:opacity-0 motion-reduce:transition-none">
+            <path d={`M${VIEW / 3} 0V${VIEW} M${(VIEW * 2) / 3} 0V${VIEW} M0 ${VIEW / 3}H${VIEW} M0 ${(VIEW * 2) / 3}H${VIEW}`} stroke="currentColor" strokeWidth="1" opacity="0.55" fill="none" />
+            <path d={`M${VIEW / 2} 0V${VIEW} M0 ${VIEW / 2}H${VIEW}`} stroke="currentColor" strokeWidth="1.5" fill="none" />
+            <rect x="16" y="16" width={VIEW - 32} height={VIEW - 32} stroke="currentColor" strokeWidth="1.5" strokeDasharray="6 5" fill="none" />
+          </svg>
         </div>
         <div className="grid w-full gap-1">
           <label htmlFor="qr-zoom" className={labelCls}>
             Zoom
           </label>
           <input id="qr-zoom" type="range" min={1} max={MAX_ZOOM} step={0.01} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="h-11 w-full accent-accent" />
-          <p className={hintCls}>Zoom in until the QR code fills most of the square.</p>
+          <p className={hintCls}>Zoom in and drag until the QR code sits evenly inside the dashed square.</p>
           {problem && (
             <p role="alert" className="text-sm text-danger">
               {problem}

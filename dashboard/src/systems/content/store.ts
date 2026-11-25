@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { databaseOn, readDocument, writeDocument } from "@/kit/database";
 import { PAGES, type PageKind } from "./site/pages";
+import { publishSoon } from "./publish";
 import { classListSchema, type ClassList } from "./site/classList";
 import { photosSchema, type Photos } from "./photoRules";
 import { itemSchemaFor, type ListDef, type ListItem } from "./listDef";
@@ -51,7 +52,11 @@ async function read<T>(file: string, parse: (v: unknown) => T): Promise<T> {
 
 // Write a whole file at once: to a temporary name, then renamed, so a stopped save never leaves half a file.
 async function write(file: string, value: unknown) {
-  if (databaseOn()) return writeDocument(file, value);
+  if (databaseOn()) {
+    await writeDocument(file, value);
+    publishSoon();
+    return;
+  }
   await mkdir(localDir(), { recursive: true });
   const target = join(localDir(), file);
   await writeFile(

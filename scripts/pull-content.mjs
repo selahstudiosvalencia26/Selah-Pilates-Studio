@@ -1,10 +1,12 @@
-// Runs before the website is built (npm run build). With CONTENT_URL set (the dashboard's address), the words and photos saved in
-// the dashboard replace the starting ones in content/data. Without it nothing happens. If the dashboard cannot be reached the build
+// Runs before the website is built (npm run build). On the live site (or with CONTENT_URL set), the words and photos saved in
+// the dashboard replace the starting ones in content/data. Elsewhere nothing happens. If the dashboard cannot be reached the build
 // stops, so the website keeps what it already shows instead of going back to old words.
 import { access, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const base = (process.env.CONTENT_URL ?? "").trim().replace(/\/$/, "");
+// On Vercel the studio's own dashboard is used, so there is nothing to set up. CONTENT_URL can point somewhere else.
+const live = process.env.VERCEL_ENV === "production" ? "https://selah-pilates-studio-dashboard.vercel.app" : "";
+const base = (process.env.CONTENT_URL || live).trim().replace(/\/$/, "");
 if (base) {
   const answer = await fetch(`${base}/api/site-content`);
   const data = answer.ok ? await answer.json() : null;
