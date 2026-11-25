@@ -35,6 +35,9 @@ export default function AccentPicker({ value, onChange, error , bare = false }: 
     set({ ...hsv, s: clamp01((e.clientX - box.left) / box.width), v: 1 - clamp01((e.clientY - box.top) / box.height) });
   };
 
+  // Highlighted text on the page makes the browser drag that text instead, which cuts the drag short. So it is cleared first.
+  const letGoOfText = () => window.getSelection()?.removeAllRanges();
+
   const onKey = (e: React.KeyboardEvent) => {
     const step = e.shiftKey ? 0.1 : 0.02;
     const move: Record<string, Partial<Hsv>> = {
@@ -90,11 +93,14 @@ export default function AccentPicker({ value, onChange, error , bare = false }: 
               aria-valuemax={100}
               onKeyDown={onKey}
               onPointerDown={(e) => {
+                e.preventDefault();
+                letGoOfText();
+                e.currentTarget.focus({ preventScroll: true });
                 e.currentTarget.setPointerCapture(e.pointerId);
                 fromPointer(e);
               }}
               onPointerMove={(e) => e.buttons === 1 && fromPointer(e)}
-              className="relative h-40 w-full cursor-crosshair touch-none overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="relative h-40 w-full cursor-crosshair touch-none select-none overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               style={{ backgroundColor: `hsl(${hsv.h} 100% 50%)` }}
             >
               <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(to right, #fff, rgba(255,255,255,0))" }} />
@@ -102,7 +108,7 @@ export default function AccentPicker({ value, onChange, error , bare = false }: 
               <span aria-hidden className="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)]" style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%` }} />
             </div>
 
-            <input type="range" min={0} max={360} step={1} value={Math.round(hsv.h)} onChange={(e) => set({ ...hsv, h: Number(e.target.value) })} aria-label="Colour tone" className="hue-slider" />
+            <input type="range" min={0} max={360} step={1} value={Math.round(hsv.h)} onChange={(e) => set({ ...hsv, h: Number(e.target.value) })} aria-label="Colour tone" onPointerDown={letGoOfText} className="hue-slider touch-none select-none" />
 
             <div className="flex items-center gap-3">
               <span aria-hidden className="h-11 w-11 shrink-0 rounded-lg border border-border-strong" style={{ backgroundColor: isHex(value) ? value : "transparent" }} />

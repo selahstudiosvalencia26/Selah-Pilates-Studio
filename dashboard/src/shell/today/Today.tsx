@@ -126,7 +126,7 @@ export default function Today({
             <li key={s.id}>
               <Link
                 href={s.href}
-                className="card flex min-h-20 items-center gap-3 px-4 py-2 transition-colors duration-150 hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="card flex h-full min-h-20 items-start gap-3 px-4 py-3 transition-colors duration-150 hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 <Icon name={s.icon} className="h-5 w-5 shrink-0" />
                 <span className="min-w-0 flex-1">

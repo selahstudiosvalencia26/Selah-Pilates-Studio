@@ -116,7 +116,7 @@ export default function SystemsGrid({
                     aria-expanded={isOpen}
                     aria-controls={isOpen ? `more-${o.id}` : undefined}
                     onClick={() => setOpen(isOpen ? "" : o.id)}
-                    className="flex h-full min-h-20 w-full items-center gap-3 rounded-xl px-4 py-2 text-left transition-colors duration-150 hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="flex h-full min-h-20 w-full items-start gap-3 rounded-xl px-4 py-3 text-left transition-colors duration-150 hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
                     <Icon name={o.icon} className="h-5 w-5 shrink-0 opacity-70" />
                     <span className="min-w-0 flex-1">
@@ -155,7 +155,7 @@ export default function SystemsGrid({
               href={contactUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex min-h-20 items-center gap-3 rounded-xl px-4 py-2 text-text-soft transition-colors duration-150 hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="flex h-full min-h-20 items-start gap-3 rounded-xl px-4 py-3 text-text-soft transition-colors duration-150 hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <Icon name="plus" className="h-5 w-5 shrink-0 opacity-70" />
               <span className="min-w-0 flex-1">

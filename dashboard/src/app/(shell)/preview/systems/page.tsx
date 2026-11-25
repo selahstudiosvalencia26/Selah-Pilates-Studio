@@ -9,6 +9,7 @@ import DashboardRow from "@/shell/systems/DashboardRow";
 import { todayInZone } from "@/kit/time";
 import { domainState } from "@/shell/usage/domain";
 import { readDomain } from "@/shell/usage/store";
+import { readEmails, readSpace } from "@/shell/usage/numbers";
 import UsagePanel from "@/shell/usage/UsagePanel";
 import { isOwner } from "@/shell/systems/owner";
 import { isMaster } from "@/shell/systems/master";
@@ -40,7 +41,7 @@ export default async function SystemsPage() {
   if (!(await isOwner())) notFound();
   const { systems, failed } = loadSystems();
   const services = checkServices(systems);
-  const domain = await readDomain();
+  const [domain, emails, space] = await Promise.all([readDomain(), readEmails(), readSpace()]);
   const master = isMaster(); // only the master offers systems to add
   const more = master ? notAdded(systems.map((s) => s.id)) : [];
   const first = more.filter((o) => o.group === "first");
@@ -81,7 +82,7 @@ export default async function SystemsPage() {
           <h2 id="usage" className="text-sm font-medium text-text-soft">
             What can run out
           </h2>
-          <UsagePanel domain={domain} state={domainState(domain.renewsOn, todayInZone("Asia/Manila"))} emailReady={!!services.find((c) => c.id === "resend")?.connected} databaseReady={!!services.find((c) => c.id === "supabase")?.connected} />
+          <UsagePanel domain={domain} state={domainState(domain.renewsOn, todayInZone("Asia/Manila"))} emails={emails} space={space} />
         </section>
 
         <section aria-labelledby="installed" className="grid gap-2">
