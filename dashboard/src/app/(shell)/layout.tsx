@@ -1,4 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { authOn } from "@/lib/auth/config";
+import { currentUser } from "@/lib/auth/server";
+import FirstStage from "@/shell/today/FirstStage";
 import { EVERYTHING, permissionsOf } from "@/kit/permissions";
 import { applyOrder, buildMenu, TODAY, type MenuItem } from "@/shell/menu";
 import { getMenuOrder } from "@/shell/menuOrderStore";
@@ -8,9 +11,8 @@ import { currentAvatar } from "@/shell/account/status";
 import { isOwner } from "@/shell/systems/owner";
 import Shell from "@/shell/frame/Shell";
 
-// The frame for every signed-in page. Sign-in is not built yet, so for now these pages exist only while developing,
-// and in production they are not found at all. When sign-in arrives, the person and their permissions come from the
-// server session instead of this sample owner. Nothing here is reachable by a stranger.
+// The frame for every signed-in page. With Supabase set up, only an email on the allowed list gets in. Without it, these pages
+// exist only while developing and are not found on a live site. Nothing here is reachable by a stranger.
 const SYSTEMS_PAGE: MenuItem = { id: "systems", title: "Systems", href: "/preview/systems", icon: "puzzle", group: "manage" };
 
 const PEOPLE_PAGE: MenuItem = {
@@ -39,7 +41,21 @@ const SETTINGS_PAGE: MenuItem = {
 };
 
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
-  if (process.env.NODE_ENV === "production") notFound();
+  // With sign-in set up, only an allowed person gets past here (the middleware checks first; this checks again).
+  const signedIn = authOn() ? await currentUser() : null;
+  if (authOn() && !signedIn) redirect("/sign-in");
+  if (!authOn() && process.env.NODE_ENV === "production") notFound();
+
+  // On the live site only sign-in works so far. Show what is coming and none of the other pages, which still read local files
+  // or sample data. The pages are not drawn at all, whatever address was typed.
+  if (signedIn && process.env.NODE_ENV === "production") {
+    const look = await getBranding();
+    return (
+      <Shell business={look.name} logoUrl={look.logoUrl} person={{ name: signedIn.email, role: "Owner", avatarUrl: null }} items={[TODAY]}>
+        <FirstStage />
+      </Shell>
+    );
+  }
   const [brand, avatarUrl] = await Promise.all([getBranding(), currentAvatar()]);
 
   const { systems } = loadSystems();
@@ -49,7 +65,7 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   const items = [TODAY, ...applyOrder(buildMenu(systems, owner), order), PEOPLE_PAGE, SETTINGS_PAGE, ...(systemsPage ? [SYSTEMS_PAGE] : [])];
 
   return (
-    <Shell business={brand.name} logoUrl={brand.logoUrl} person={{ name: "Sample Owner", role: "Owner", avatarUrl }} items={items}>
+    <Shell business={brand.name} logoUrl={brand.logoUrl} person={{ name: signedIn?.email ?? "Sample Owner", role: "Owner", avatarUrl }} items={items}>
       {children}
     </Shell>
   );

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { authOn } from "@/lib/auth/config";
 import { getBranding } from "@/shell/branding/server";
 import BrandMark from "@/shell/frame/BrandMark";
 import { devSkipAllowed } from "@/shell/signin/devSkip";
 import SignInForm from "@/shell/signin/SignInForm";
 
 export const metadata: Metadata = { title: "Sign in" };
+export const dynamic = "force-dynamic";
 
 // The sign-in screen. The same rounded panel on the frame colour as the dashboard, with the business at the top left and one
 // plain form in the middle. The business has a default logo (its first letter) until the owner adds their own.
@@ -21,7 +23,7 @@ export default async function SignInPage() {
         <div className="grid flex-1 place-items-center py-10">
           <div className="grid w-full max-w-[22rem] gap-8">
             <h1 className="text-center text-2xl font-semibold tracking-[-0.015em]">Sign in</h1>
-            <SignInForm devSkip={devSkipAllowed()} />
+            <SignInForm devSkip={devSkipAllowed()} passwordOnly={authOn()} />
             <p className="text-center text-[13px] leading-relaxed text-text-soft">
               Only people who were invited can sign in.
               <br />

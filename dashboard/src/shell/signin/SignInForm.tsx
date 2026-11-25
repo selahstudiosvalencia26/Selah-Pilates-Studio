@@ -12,7 +12,7 @@ const main = `${buttonClass("primary", { block: true })} min-h-12 text-[15px]`;
 const link = "text-sm font-medium text-accent-ink underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-accent";
 
 // `devSkip` only changes what is shown. The server checks again, so a person cannot switch it on from the browser.
-export default function SignInForm({ devSkip = false }: { devSkip?: boolean }) {
+export default function SignInForm({ devSkip = false, passwordOnly = false }: { devSkip?: boolean; passwordOnly?: boolean }) {
   const router = useRouter();
   const [step, setStep] = useState<"email" | "code" | "password">("password");
   const [password, setPassword] = useState("");
@@ -87,7 +87,7 @@ export default function SignInForm({ devSkip = false }: { devSkip?: boolean }) {
         <button type="submit" disabled={busy || email.trim() === "" || password === ""} className={main}>
           {busy ? "Signing in..." : "Sign in"}
         </button>
-        <div className="flex justify-center">
+        <div className={passwordOnly ? "hidden" : "flex justify-center"}>
           <button
             type="button"
             onClick={() => {

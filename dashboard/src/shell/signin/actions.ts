@@ -3,6 +3,8 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { authOn } from "@/lib/auth/config";
+import { endSession, passwordSignIn } from "@/lib/auth/server";
 import { DEV_LOGIN, verifyPracticePassword } from "@/shell/account/accountAuth";
 import { devSkipAllowed } from "./devSkip";
 import { createLimiter, waitWords } from "@/kit/rateLimit";
@@ -37,13 +39,14 @@ const slow = (seconds: number) => err(`Too many tries. Please wait ${waitWords(s
 // Sign out. Placeholder like the rest of this file: there is no session to end yet, so it only goes back to the sign-in
 // screen. The real version ends the session first, then does the same redirect.
 export async function signOut(): Promise<void> {
+  if (authOn()) await endSession();
   redirect("/sign-in");
 }
 
 // `trap` is a hidden field people never see. A bot that fills in every field fills this one too, and is quietly ignored:
 // it gets the same answer as everyone else, so it cannot tell it was caught.
 export async function requestCode(input: string, trap = ""): Promise<Result> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  if (process.env.NODE_ENV === "production" || authOn()) return err(NOT_CONNECTED);
   if (trap !== "") return ok(undefined);
   const parsed = email.safeParse(input);
   if (!parsed.success) return err("That email does not look right. Check it and try again.");
@@ -70,7 +73,7 @@ export async function devSignIn(input: string, trap = ""): Promise<Result> {
 }
 
 export async function checkCode(input: { email: string; code: string }): Promise<Result> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  if (process.env.NODE_ENV === "production" || authOn()) return err(NOT_CONNECTED);
   const parsed = email.safeParse(input.email);
   if (!parsed.success) return err("That email does not look right. Check it and try again.");
 
@@ -92,7 +95,8 @@ export async function checkCode(input: { email: string; code: string }): Promise
 // the trap field, the limits per email and per address, and ONE answer for a wrong email and a wrong password, so nobody can
 // test which emails have an account (no user guessing).
 export async function signInWithPassword(input: { email: string; password: string }, trap = ""): Promise<Result> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  const real = authOn();
+  if (!real && process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
   if (trap !== "") return ok(undefined);
   const parsed = z.union([z.string().trim().toLowerCase().pipe(z.literal(DEV_LOGIN)), email]).safeParse(input.email);
   if (!parsed.success) return err("That email or username does not look right. Check it and try again.");
@@ -103,7 +107,8 @@ export async function signInWithPassword(input: { email: string; password: strin
   const byEmail = passwordTriesPerEmail.hit(parsed.data);
   if (!byEmail.allowed) return slow(byEmail.retryAfterSeconds);
 
-  if (!(await verifyPracticePassword(parsed.data, input.password))) return err("That email or password is not right.");
+  const right = real ? await passwordSignIn(parsed.data, input.password) : await verifyPracticePassword(parsed.data, input.password);
+  if (!right) return err("That email or password is not right.");
   passwordTriesPerEmail.reset(parsed.data);
   return ok(undefined);
 }
