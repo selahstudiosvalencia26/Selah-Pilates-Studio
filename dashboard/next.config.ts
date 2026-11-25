@@ -33,8 +33,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // The server does not announce what software it runs.
   poweredByHeader: false,
-  // The business name and what it books (setup/) are read while running, so they must travel with the live build.
-  outputFileTracingIncludes: { "/**": ["./setup/**"] },
+  // The business name and what it books (setup/), and the website's class list, are read while running, so they must travel
+  // with the live build.
+  outputFileTracingIncludes: { "/**": ["./setup/**", "../content/data/classes.json"] },
   // While developing, Next.js shows a small round badge. Keep it off the bottom-left corner, where the menu's collapse
   // button and the signed-in person live.
   devIndicators: { position: "bottom-right" },

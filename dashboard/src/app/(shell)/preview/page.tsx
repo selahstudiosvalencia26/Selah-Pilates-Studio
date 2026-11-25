@@ -1,3 +1,5 @@
+import { databaseOn } from "@/kit/database";
+import FirstStage from "@/shell/today/FirstStage";
 import { installHref } from "@/shell/systems/installLink";
 import { EVERYTHING, permissionsOf } from "@/kit/permissions";
 import { buildMenu } from "@/shell/menu";
@@ -11,6 +13,8 @@ import { readDomain } from "@/shell/usage/store";
 export const dynamic = "force-dynamic";
 
 export default async function PreviewToday() {
+  // The live home page says what works now. No sample figures are shown there.
+  if (process.env.NODE_ENV === "production") return <FirstStage bookingReady={databaseOn()} />;
   const { systems } = loadSystems();
   // The owner is reminded on Today only when the domain is close to running out.
   const state = (await isOwner()) ? domainState((await readDomain()).renewsOn, todayInZone("Asia/Manila")) : null;
