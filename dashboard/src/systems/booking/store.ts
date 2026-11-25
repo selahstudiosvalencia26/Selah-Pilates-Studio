@@ -2,9 +2,12 @@ import { readFileSync } from "node:fs";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { getBusiness } from "@/kit/business";
+import { callFunction, databaseOn, selectAll, selectOne } from "@/kit/database";
+import { fromRow, toRow } from "./rows";
 import { bookingsSchema, DEFAULT_SETTINGS, settingsSchema, type Booking, type Settings } from "./schema";
 
-// Where bookings are kept while there is no database: two small files (bookings.json, settings.json) in one folder.
+// Where bookings are kept. With Supabase set up (a live site), in its tables. Otherwise two small files (bookings.json,
+// settings.json) in one folder, for building.
 // When the database is connected, this file is the only one that changes (docs/systems/booking/design.md); everything else
 // asks for data through `withData` and never knows where it lives.
 //
@@ -58,8 +61,32 @@ export type Data = { bookings: Booking[]; settings: Settings };
 // sees the first one's change, which is what lets "two staff confirm the same slot" refuse the second. If `change` throws, nothing is saved.
 let line: Promise<unknown> = Promise.resolve();
 
+// With the database set up, a save is made against the version that was read. If someone else saved meanwhile it is refused, and
+// the whole step is done again with their change in front of it. So the rules (a full class, a taken time) are always checked
+// against what is really there.
+async function withDatabase<T>(change: (data: Data) => T | Promise<T>): Promise<T> {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const version = Number((await selectOne("booking_version"))?.version ?? 0);
+    const [saved, rows] = await Promise.all([selectOne("booking_settings"), selectAll("booking_records", "created_at")]);
+    const data: Data = {
+      bookings: rows.map(fromRow),
+      settings: saved ? settingsSchema.parse(upgrade(saved.settings)) : startingSettings(),
+    };
+    const before = new Map(data.bookings.map((b) => [b.id, JSON.stringify(b)]));
+    const settingsBefore = JSON.stringify(data.settings);
+    const result = await change(data);
+    const changed = data.bookings.filter((b) => before.get(b.id) !== JSON.stringify(b));
+    const newSettings = JSON.stringify(data.settings) === settingsBefore ? null : data.settings;
+    if (changed.length === 0 && !newSettings) return result;
+    const done = await callFunction<boolean>("booking_commit", { expected: version, records: changed.map(toRow), new_settings: newSettings });
+    if (done) return result;
+  }
+  throw new Error("Too many people were saving at once.");
+}
+
 export function withData<T>(change: (data: Data) => T | Promise<T>): Promise<T> {
   const run = line.then(async () => {
+    if (databaseOn()) return withDatabase(change);
     const data: Data = {
       bookings: await readFileOr("bookings.json", (v) => bookingsSchema.parse(v), []),
       settings: await readFileOr("settings.json", (v) => settingsSchema.parse(upgrade(v)), startingSettings()),

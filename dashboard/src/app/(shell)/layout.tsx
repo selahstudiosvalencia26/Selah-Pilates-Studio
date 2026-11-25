@@ -1,4 +1,6 @@
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import { databaseOn } from "@/kit/database";
 import { authOn } from "@/lib/auth/config";
 import { currentUser } from "@/lib/auth/server";
 import FirstStage from "@/shell/today/FirstStage";
@@ -46,13 +48,19 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   if (authOn() && !signedIn) redirect("/sign-in");
   if (!authOn() && process.env.NODE_ENV === "production") notFound();
 
-  // On the live site only sign-in works so far. Show what is coming and none of the other pages, which still read local files
-  // or sample data. The pages are not drawn at all, whatever address was typed.
+  // On the live site, only what really saves online is open. Everything else shows what is coming: those pages still read local
+  // files or sample data, so they are not drawn at all.
   if (signedIn && process.env.NODE_ENV === "production") {
     const look = await getBranding();
+    const path = (await headers()).get("x-path") ?? "";
+    const ready = databaseOn();
+    const closed = ["/booking/classes", "/booking/settings/emails"];
+    const open = ready && (path === "/booking" || path.startsWith("/booking/")) && !closed.some((c) => path.startsWith(c));
+    const booking = loadSystems().systems.filter((x) => x.id === "booking");
+    const menu = [TODAY, ...(ready ? buildMenu(booking, permissionsOf([[EVERYTHING]])) : [])];
     return (
-      <Shell business={look.name} logoUrl={look.logoUrl} person={{ name: signedIn.email, role: "Owner", avatarUrl: null }} items={[TODAY]}>
-        <FirstStage />
+      <Shell business={look.name} logoUrl={look.logoUrl} person={{ name: signedIn.email, role: "Owner", avatarUrl: null }} items={menu}>
+        {open ? children : <FirstStage bookingReady={ready} />}
       </Shell>
     );
   }

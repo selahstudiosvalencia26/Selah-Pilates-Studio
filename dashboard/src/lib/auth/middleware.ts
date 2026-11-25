@@ -12,14 +12,20 @@ export async function guardRequest(request: NextRequest): Promise<NextResponse> 
   const settings = supabaseSettings();
   if (!settings) return NextResponse.next(); // not set up: pages stay closed on a live site by their own check
 
-  let response = NextResponse.next({ request });
+  // The frame needs to know which page was asked for. Set here, replacing anything the browser sent.
+  const next = () => {
+    const headers = new Headers(request.headers);
+    headers.set("x-path", request.nextUrl.pathname);
+    return NextResponse.next({ request: { headers } });
+  };
+  let response = next();
   const supabase = createServerClient(settings.url, settings.key, {
     cookieOptions: { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (list) => {
         for (const { name, value } of list) request.cookies.set(name, value);
-        response = NextResponse.next({ request });
+        response = next();
         for (const { name, value, options } of list) response.cookies.set(name, value, options);
       },
     },

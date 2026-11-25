@@ -32,8 +32,8 @@ export default defineSystem({
     { id: "booking.delete", label: "Delete bookings", default: ["owner"] },
     { id: "booking.manage", label: "Change booking settings", default: ["owner"] },
   ],
-  tables: ["booking_settings", "booking_records"],
-  migrations: ["001_create_tables.sql", "002_prices_and_deposits.sql"],
+  tables: ["booking_settings", "booking_records", "booking_version"],
+  migrations: ["001_create_tables.sql", "002_prices_and_deposits.sql", "003_save_online.sql"],
   labels: { booking: "Booking" },
   today: [{ id: "new-requests", title: "New booking requests", permission: "booking.view" }],
   emails: [

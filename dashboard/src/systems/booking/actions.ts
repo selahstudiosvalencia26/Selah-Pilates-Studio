@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { databaseOn } from "@/kit/database";
 import { fail } from "@/kit/errors";
 import { parseAmount } from "@/kit/money";
 import { EVERYTHING, can, permissionsOf } from "@/kit/permissions";
 import { attempt, err, type Result } from "@/kit/result";
+import { signedInOwner } from "@/kit/session";
 import { permissionFor, type Action } from "./rules";
 import { METHODS, fieldsSchema, noteSchema, settingsSchema, STATUSES, type Status } from "./schema";
 import { addBooking, bookClass, cancelBooking, confirmBooking, declineBooking, editBooking, finishBooking, recordDeposit, removeBooking, restoreBooking, saveSettings, saveTimetable } from "./service";
@@ -19,7 +21,8 @@ const whoIsAsking = () => permissionsOf([[EVERYTHING]]);
 const firstProblem = (issues: { message: string }[]) => issues[0]?.message ?? "Check the details and try again.";
 
 async function guard(permission: string, run: () => Promise<unknown>): Promise<Result<undefined>> {
-  if (process.env.NODE_ENV === "production") return err(NOT_CONNECTED);
+  // On a live site: only with the database set up, and only for a signed-in owner. Checked here, on the server, every time.
+  if (process.env.NODE_ENV === "production" && !(databaseOn() && (await signedInOwner()))) return err(NOT_CONNECTED);
   if (!can(whoIsAsking(), permission)) return err("You do not have permission to do this.");
   const done = await attempt(run, (e) => console.error("booking action failed", e instanceof Error ? e.message : "unknown"));
   if (done.ok) revalidatePath("/booking", "layout");
