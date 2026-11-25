@@ -1,1 +1,110 @@
-{}
+{
+  "class-sculpt": {
+    "file": "f9e809d6ccd5.webp",
+    "alt": "Sculpt",
+    "x": 50,
+    "y": 50
+  },
+  "home-hero": {
+    "file": "6716309f1ca5.webp",
+    "alt": "Test",
+    "x": 50.3,
+    "y": 50.5
+  },
+  "class-align": {
+    "file": "412a09689b5c.webp",
+    "alt": "Align",
+    "x": 42.4,
+    "y": 90.3
+  },
+  "class-unfold": {
+    "file": "149889c13b50.webp",
+    "alt": "Unfold",
+    "x": 56.7,
+    "y": 37.2
+  },
+  "class-essentials": {
+    "file": "bdaa8175ad98.webp",
+    "alt": "Essentials",
+    "x": 58.6,
+    "y": 0
+  },
+  "class-group-mat": {
+    "file": "baecbf33cd6a.webp",
+    "alt": "Mat Class",
+    "x": 45.6,
+    "y": 59.9
+  },
+  "class-group-private": {
+    "file": "257b36324756.webp",
+    "alt": "Private Session",
+    "x": 51.9,
+    "y": 20.3
+  },
+  "about-main": {
+    "file": "3b3c57625c29.webp",
+    "alt": "Belt",
+    "x": 68.8,
+    "y": 98.8
+  },
+  "about-side-1": {
+    "file": "b3b94617cd1c.webp",
+    "alt": "2nd Photo",
+    "x": 47,
+    "y": 75.5
+  },
+  "about-side-2": {
+    "file": "fd369cba4739.webp",
+    "alt": "Tumbler",
+    "x": 43.8,
+    "y": 29.7
+  },
+  "team-ciara-bergado": {
+    "file": "994763f8e3b9.webp",
+    "alt": "Ciara Bergado",
+    "x": 50,
+    "y": 50
+  },
+  "home-benefits": {
+    "file": "40722b7f47c5.webp",
+    "alt": "Belt",
+    "x": 52.5,
+    "y": 55.7
+  },
+  "class-ease": {
+    "file": "aaad6539df3c.webp",
+    "alt": "Ease",
+    "x": 47.9,
+    "y": 38.2
+  },
+  "class-solo": {
+    "file": "fdff893ec897.webp",
+    "alt": "Solo Class",
+    "x": 52.5,
+    "y": 97.6
+  },
+  "class-duet": {
+    "file": "f8b455eb04b7.webp",
+    "alt": "Duet Class",
+    "x": 22.9,
+    "y": 93.8
+  },
+  "list-blog-sample-first-class": {
+    "file": "b06f7789150e.webp",
+    "alt": "Sample: Before your first class",
+    "x": 50,
+    "y": 50
+  },
+  "list-blog-sample-which-class": {
+    "file": "2f453cc7303d.webp",
+    "alt": "Sample: Which class should I try?",
+    "x": 50,
+    "y": 50
+  },
+  "list-blog-sample-private": {
+    "file": "6900aa9b0f47.webp",
+    "alt": "Sample: Private reformer sessions",
+    "x": 50,
+    "y": 50
+  }
+}
