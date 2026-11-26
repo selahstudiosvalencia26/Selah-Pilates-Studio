@@ -11,6 +11,9 @@ import { defaultRoles, describeLevel, isSensitive, levelOf, levelsFor, setLevel,
 import { buttonClass } from "@/kit/Button";
 import { saveRoles } from "./actions";
 
+// The same choices ticked in a different order are the same role.
+const fingerprint = (list: Role[]) => JSON.stringify(list.map((r) => [r.id, r.name, [...r.permissions].sort()]));
+
 // The Roles screen (docs/dashboard/shell-plan.md, section 2). Pick a role, then pick ONE level for each system: None, See, Change,
 // Approve or Everything. That covers nearly everything. "Customize" opens the detailed ticks for the rare exception.
 // Owner is locked. Manager and Staff can be reset. The owner can make more roles ("Cashier").
@@ -21,7 +24,7 @@ export default function RoleEditor({ systems, saved, installHref }: { systems: M
   const [kept, setKept] = useState(() => JSON.stringify(saved));
   const [message, setMessage] = useState<SaveMessage>(null);
   const [pending, startSaving] = useTransition();
-  const dirty = JSON.stringify(roles) !== kept;
+  const dirty = fingerprint(roles) !== fingerprint(JSON.parse(kept) as Role[]);
   const persist = (list: Role[]) =>
     startSaving(async () => {
       const r = await saveRoles(list);
@@ -119,9 +122,24 @@ export default function RoleEditor({ systems, saved, installHref }: { systems: M
         </p>
       )}
 
-      <p className="max-w-2xl text-sm text-text-soft">
-        {role.locked ? "The Owner can do everything, and this cannot be changed." : `Choose what ${role.name} can do in each part of the dashboard.`}
-      </p>
+      <div className="flex min-h-11 flex-wrap items-center justify-between gap-3">
+        <p className="max-w-2xl text-sm text-text-soft">
+          {role.locked ? "The Owner can do everything, and this cannot be changed." : `Choose what ${role.name} can do in each part of the dashboard.`}
+        </p>
+        {!role.builtin ? (
+          <button type="button" onClick={remove} className={buttonClass()}>
+            <Icon name="trash" className="h-4 w-4" />
+            Delete {role.name}
+          </button>
+        ) : (
+          !role.locked &&
+          systems.length > 0 && (
+            <button type="button" onClick={reset} className={buttonClass("quiet")}>
+              Reset to the usual
+            </button>
+          )
+        )}
+      </div>
 
       {systems.length === 0 ? (
         <NoSystems installHref={installHref} />
@@ -187,21 +205,6 @@ export default function RoleEditor({ systems, saved, installHref }: { systems: M
         </ul>
       )}
 
-      {!role.builtin && (
-        <div>
-          <button type="button" onClick={remove} className={buttonClass()}>
-            <Icon name="trash" className="h-4 w-4" />
-            Delete {role.name}
-          </button>
-        </div>
-      )}
-      {systems.length > 0 && role.builtin && !role.locked && (
-        <div>
-          <button type="button" onClick={reset} className={buttonClass("quiet")}>
-            Reset to the usual
-          </button>
-        </div>
-      )}
       <SaveBar dirty={dirty} pending={pending} message={dirty ? null : message} label="Save roles" onSave={save} />
     </div>
   );
