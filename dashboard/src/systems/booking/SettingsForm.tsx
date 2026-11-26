@@ -94,6 +94,12 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
                   {s.depositKind === "percent" && (!venue || s.priceType !== "none") ? "Fixed amount, for bookings with no price (₱)" : "Deposit amount (₱)"}
                 </label>
                 <input id="s-deposit" inputMode="decimal" className={field} value={deposit} onChange={(e) => (setDeposit(e.target.value), setMessage(null))} />
+                {/* 0 quietly turns the deposit off, so it is said out loud: otherwise the QR seems to be broken. */}
+                {!(Number(deposit.replace(/,/g, "")) > 0) && !(s.depositKind === "percent" && (!venue || s.priceType !== "none")) && (
+                  <p role="status" className="mt-1.5 text-sm text-warning">
+                    With 0, customers are not asked to pay and will not see your QR. Type the amount.
+                  </p>
+                )}
                 </div>
                 <div>
                 <label htmlFor="s-hours" className={labelCls}>
