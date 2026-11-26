@@ -7,6 +7,9 @@ export type Sent = { ok: true } | { ok: false; why: "off" | "own-address" | "fai
 
 export const mailReady = (): boolean => Boolean((process.env.RESEND_API_KEY ?? "").trim() && (process.env.EMAIL_FROM ?? "").trim());
 
+/** Can customers be emailed? Resend's shared test address only reaches the Resend account itself, so it takes the studio's own domain. */
+export const ownDomain = (): boolean => mailReady() && !(process.env.EMAIL_FROM ?? "").trim().toLowerCase().replace(/>$/, "").endsWith("@resend.dev");
+
 /** Where studio alerts go: the address the owner typed, otherwise the first owner sign-in. */
 export const studioAddress = (s: EmailSettings): string => s.staffTo || allowedEmails()[0] || "";
 

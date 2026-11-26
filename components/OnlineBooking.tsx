@@ -123,6 +123,7 @@ export function OnlineBooking({
   const [v, setV] = useState(empty);
   const [busy, setBusy] = useState(false);
   const [known, setKnown] = useState(false); // details remembered from last time: no typing needed
+  const [askEmail, setAskEmail] = useState(false); // remembered, but without an email
   const [more, setMore] = useState(false); // the optional boxes
   const [keep, setKeep] = useState(true);
   const [copied, setCopied] = useState("");
@@ -154,6 +155,7 @@ export function OnlineBooking({
     if (saved) {
       setV((now) => ({ ...now, ...saved }));
       setKnown(true);
+      setAskEmail(!saved.email);
     }
   }, [load]);
   // Once booked, the answer is brought to the top of the screen, below the menu, so it is read from its first line. The classes
@@ -313,6 +315,7 @@ export function OnlineBooking({
             const saved = recall();
             setV({ ...empty, ...saved });
             setKnown(Boolean(saved));
+            setAskEmail(Boolean(saved) && !saved?.email);
           }}
         >
           Book another class
@@ -449,6 +452,25 @@ export function OnlineBooking({
             autoComplete: "tel",
             placeholder: "0917 123 4567",
           })}
+          <div className="sm:col-span-2">
+            {input("email", "Email", {
+              required: true,
+              type: "email",
+              autoComplete: "email",
+              placeholder: "you@example.com",
+            })}
+          </div>
+        </div>
+      )}
+      {/* Someone remembered from before the email was asked still gives it once. */}
+      {known && askEmail && (
+        <div>
+          {input("email", "Email", {
+            required: true,
+            type: "email",
+            autoComplete: "email",
+            placeholder: "you@example.com",
+          })}
         </div>
       )}
 
@@ -496,10 +518,6 @@ export function OnlineBooking({
 
       {more ? (
         <div className={`grid gap-4 ${enter}`}>
-          {input("email", "Email (optional)", {
-            type: "email",
-            autoComplete: "email",
-          })}
           <label className="block text-base">
             Note (optional)
             <textarea
@@ -517,7 +535,7 @@ export function OnlineBooking({
           className="min-h-11 justify-self-start text-base underline underline-offset-4"
           onClick={() => setMore(true)}
         >
-          Add a note or email (optional)
+          Add a note (optional)
         </button>
       )}
 

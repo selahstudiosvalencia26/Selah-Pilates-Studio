@@ -5,6 +5,9 @@ import { Button } from "@/components/Button";
 import { bookingApi } from "@/content/booking";
 
 // After paying, the customer attaches the screenshot right here. It is made smaller in their browser first, then sent to the studio.
+const MAX_MB = 10; // the largest file they may choose
+const WAIT_MS = 45_000; // after this the sending is given up and said so
+
 async function shrink(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
   for (const [side, quality] of [[1400, 0.82], [1100, 0.75], [900, 0.65]] as const) {
@@ -29,11 +32,13 @@ export default function PayProof({ id, code }: { id: string; code: string }) {
 
   const send = async (file: File | undefined) => {
     if (!file) return;
-    setState("sending");
     setProblem("");
+    if (!file.type.startsWith("image/")) return setProblem("Choose a picture: a JPG or PNG screenshot.");
+    if (file.size > MAX_MB * 1024 * 1024) return setProblem(`That picture is over ${MAX_MB} MB. Take a screenshot of the receipt instead.`);
+    setState("sending");
     try {
       const image = await shrink(file);
-      const r = await fetch(`${bookingApi}/api/booking/proof`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, code, image }) });
+      const r = await fetch(`${bookingApi}/api/booking/proof`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, code, image }), signal: AbortSignal.timeout(WAIT_MS) });
       const j = await r.json();
       if (!j.ok) throw new Error(j.message);
       setState("sent");
@@ -53,13 +58,18 @@ export default function PayProof({ id, code }: { id: string; code: string }) {
   return (
     <div className="mt-6 rounded-3xl bg-page p-7">
       <p className="font-serif text-2xl">Paid? Attach your receipt.</p>
-      <p className="mt-1 text-muted">A screenshot of the payment is enough.</p>
+      <p className="mt-1 text-muted">A screenshot of the payment is enough. One picture, JPG or PNG, up to {MAX_MB} MB.</p>
       <label className="mt-4 inline-block cursor-pointer has-[:focus-visible]:outline-2">
         <input type="file" accept="image/*" disabled={state === "sending"} className="sr-only" onChange={(e) => void send(e.target.files?.[0])} />
         <Button variant="dark" tabIndex={-1} className="pointer-events-none">
           {state === "sending" ? "Sending" : "Choose screenshot"}
         </Button>
       </label>
+      {state === "sending" && (
+        <p role="status" className="mt-3 text-muted">
+          This can take a few seconds. Please keep this page open.
+        </p>
+      )}
       {problem && (
         <p role="alert" className="mt-3">
           {problem}

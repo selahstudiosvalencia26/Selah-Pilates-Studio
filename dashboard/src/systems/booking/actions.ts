@@ -7,6 +7,7 @@ import { parseAmount } from "@/kit/money";
 import { EVERYTHING, can, permissionsOf } from "@/kit/permissions";
 import { attempt, err, type Result } from "@/kit/result";
 import { canSave } from "@/kit/session";
+import { tellCustomer, type ForCustomer } from "./notify";
 import { permissionFor, type Action } from "./rules";
 import { METHODS, fieldsSchema, noteSchema, settingsSchema, STATUSES, type Status } from "./schema";
 import { addBooking, bookClass, cancelBooking, confirmBooking, declineBooking, editBooking, finishBooking, recordDeposit, removeBooking, restoreBooking, saveSettings, saveTimetable } from "./service";
@@ -25,6 +26,12 @@ async function guard(permission: string, run: () => Promise<unknown>): Promise<R
   const done = await attempt(run, (e) => console.error("booking action failed", e instanceof Error ? e.message : "unknown"));
   if (done.ok) revalidatePath("/booking", "layout");
   return done.ok ? { ok: true, data: undefined } : done;
+}
+
+// A step that worked is also told to the customer by email, when that can be sent.
+function told(what: ForCustomer, bookingId: string, done: Result<undefined>): Result<undefined> {
+  if (done.ok) tellCustomer(what, bookingId);
+  return done;
 }
 
 const status = z.enum(STATUSES);
@@ -58,7 +65,7 @@ const bad = err("We could not find that booking.");
 
 export async function confirmAction(bookingId: string, expect: Status): Promise<Result<undefined>> {
   if (!ref.safeParse([bookingId, expect]).success) return bad;
-  return guard(step("confirm", expect), () => confirmBooking(bookingId, expect));
+  return told("confirmed", bookingId, await guard(step("confirm", expect), () => confirmBooking(bookingId, expect)));
 }
 
 export async function declineAction(bookingId: string, expect: Status, note: string): Promise<Result<undefined>> {
@@ -76,12 +83,12 @@ export async function depositAction(bookingId: string, expect: Status, input: { 
   if (amount === null || amount <= 0) return err("Enter the amount that was paid, like 5000 or 5,000.50.");
   if (!method.success) return err("Choose how it was paid.");
   if (!paidOn.success) return err("Enter the date it was received.");
-  return guard(step("recordDeposit", expect), () => recordDeposit(bookingId, expect, { amount, method: method.data, paidOn: paidOn.data }));
+  return told("confirmed", bookingId, await guard(step("recordDeposit", expect), () => recordDeposit(bookingId, expect, { amount, method: method.data, paidOn: paidOn.data })));
 }
 
 export async function cancelAction(bookingId: string, expect: Status, keepDeposit: boolean): Promise<Result<undefined>> {
   if (!ref.safeParse([bookingId, expect]).success) return bad;
-  return guard(step("cancel", expect), () => cancelBooking(bookingId, expect, keepDeposit === true));
+  return told("cancelled", bookingId, await guard(step("cancel", expect), () => cancelBooking(bookingId, expect, keepDeposit === true)));
 }
 
 export async function finishAction(bookingId: string, expect: Status): Promise<Result<undefined>> {

@@ -1,7 +1,7 @@
 import { AppError, safeMessage } from "@/kit/errors";
 import { createLimiter, waitWords } from "@/kit/rateLimit";
 import { todayInZone } from "@/kit/time";
-import { alertStudio } from "./notify";
+import { alertStudio, tellCustomer } from "./notify";
 import { proofCode } from "./proof";
 import { addBooking, bookClass } from "./service";
 import { formatAccountNumber } from "./accountNumber";
@@ -121,7 +121,10 @@ export async function request(body: unknown, caller: string, now: Date = new Dat
     }
     const data = await readData();
     const made = data.bookings.find((b) => b.id === id);
-    if (made) alertStudio("booked", made, data.settings.zone);
+    if (made) {
+      alertStudio("booked", made, data.settings.zone);
+      tellCustomer("received", made.id);
+    }
     // Waiting for a deposit: the customer is shown how to pay. (A venue can instead ask only after staff confirm.)
     if ((settings.mode === "classes" || data.settings.depositWhen === "request") && made?.deposit === "waiting") {
       const accounts = data.settings.payAccounts.map((a) => ({ label: payLabel(a), name: a.name, number: formatAccountNumber(a.kind, a.number), qr: a.qr }));

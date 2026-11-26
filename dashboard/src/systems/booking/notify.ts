@@ -1,8 +1,11 @@
 import { after } from "next/server";
 import { isEmailOn, readEmailSettings } from "@/kit/emailSettings";
-import { mailReady, sendMail, studioAddress } from "@/kit/mailer";
+import { mailReady, ownDomain, sendMail, studioAddress } from "@/kit/mailer";
+import { formatAccountNumber } from "./accountNumber";
+import { payLabel } from "./schema";
 import { peso } from "./pricing";
-import type { Booking } from "./schema";
+import type { Booking, Settings } from "./schema";
+import { readData } from "./store";
 import { whenWords } from "./time";
 
 // Tell the studio by email: a new booking from the website, or a payment screenshot that arrived. Sent after the customer has their
@@ -36,5 +39,53 @@ export function alertStudio(what: What, b: Booking, zone: string): void {
     after(run);
   } catch {
     void run(); // outside a request (a test)
+  }
+}
+
+// ---- to the customer -------------------------------------------------------------------------------------------------------------
+// Nothing the customer typed (name, note) goes into these, so a made-up booking cannot be used to send someone else a message of a
+// stranger's choosing: only the studio's own words, the class and the time.
+export type ForCustomer = "received" | "confirmed" | "cancelled";
+const SWITCH = { received: "request-received", confirmed: "confirmed", cancelled: "declined" } as const;
+
+export function customerWords(what: ForCustomer, b: Booking, settings: Pick<Settings, "zone" | "venue" | "payAccounts">): { subject: string; text: string } {
+  const slot = `${b.eventType}, ${whenWords(b.startsAt, settings.zone)}`;
+  const studio = settings.venue || "the studio";
+  const owes = b.deposit === "waiting";
+  const pay = owes
+    ? [
+        "",
+        `To keep your slot, pay ${peso(b.depositAmount)}:`,
+        ...settings.payAccounts.map((a) => `- ${payLabel(a)}: ${[formatAccountNumber(a.kind, a.number), a.name].filter(Boolean).join(", ")}`),
+        "Then attach your payment screenshot on the booking page, or send it to us in a message.",
+      ]
+    : [];
+  const lines = {
+    received: [owes ? `We are holding your slot: ${slot}.` : `You are booked: ${slot}.`, ...pay],
+    confirmed: [`Your slot is confirmed: ${slot}.`, "See you in class."],
+    cancelled: [`Your booking was cancelled: ${slot}.`, "If this is a surprise, please message us."],
+  }[what];
+  const subject = { received: owes ? `Pay to keep your slot: ${slot}` : `You are booked: ${slot}`, confirmed: `Confirmed: ${slot}`, cancelled: `Cancelled: ${slot}` }[what];
+  return { subject, text: [...lines, "", studio].join("\n") };
+}
+
+/** Email the customer about their booking, if they gave an email and the studio can send to it. Never gets in the way. */
+export function tellCustomer(what: ForCustomer, bookingId: string): void {
+  if (!ownDomain()) return;
+  const run = async () => {
+    try {
+      const { bookings, settings } = await readData();
+      const b = bookings.find((x) => x.id === bookingId);
+      const email = await readEmailSettings();
+      if (!b?.email || !isEmailOn(email, "booking", SWITCH[what], true)) return;
+      await sendMail({ to: b.email, ...customerWords(what, b, settings) }, email);
+    } catch (e) {
+      console.error("customer email failed", e instanceof Error ? e.name : "unknown");
+    }
+  };
+  try {
+    after(run);
+  } catch {
+    void run();
   }
 }

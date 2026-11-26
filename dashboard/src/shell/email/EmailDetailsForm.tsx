@@ -10,7 +10,7 @@ import { saveEmailDetails, sendTestEmail } from "./actions";
 
 // Set up once, used by every system's emails. One studio email gets both customer replies and booking alerts, so there is one box for
 // it and nothing to decide. Beside it, an example of the alert the studio gets, and a real test.
-export default function EmailDetailsForm({ initial, suggestion, ready }: { initial: EmailDetails; suggestion?: string; ready: boolean }) {
+export default function EmailDetailsForm({ initial, suggestion, ready, customers }: { initial: EmailDetails; suggestion?: string; ready: boolean; customers: boolean }) {
   const [v, setV] = useState(initial);
   const [saved, setSaved] = useState(initial);
   const [message, setMessage] = useState<SaveMessage>(null);
@@ -45,7 +45,7 @@ export default function EmailDetailsForm({ initial, suggestion, ready }: { initi
         <Icon name={ready ? "check" : "warning"} weight="medium" className={`mt-0.5 h-4 w-4 shrink-0 ${ready ? "text-success" : "text-warning"}`} />
         <span>
           <span className="font-semibold">{ready ? "Booking alerts are on." : "Email is not connected yet."}</span>{" "}
-          <span className="text-text-soft">{ready ? "You get an email for each new booking and receipt. Customers are not emailed yet." : "You can fill this in now, so it is ready."}</span>
+          <span className="text-text-soft">{ready ? `You get an email for each new booking and receipt. ${customers ? "Customers who give an email are told too." : "Customers are not emailed yet: that needs your own web address."}` : "You can fill this in now, so it is ready."}</span>
         </span>
       </p>
 
