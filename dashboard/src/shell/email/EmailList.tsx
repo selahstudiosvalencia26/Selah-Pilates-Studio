@@ -81,7 +81,7 @@ export default function EmailList({ system, title, icon, rows, from }: { system:
           ))}
         </ul>
       )}
-      {ordered.some((r) => !r.sends && r.to === "customer") && <p className="border-t border-border px-5 py-3 text-xs text-text-soft">Emails to customers start once you have your own web address (for example yourstudio.com).</p>}
+      {ordered.some((r) => !r.sends && r.to === "customer") && <p className="border-t border-border px-5 py-3 text-xs text-text-soft">{ordered.find((r) => !r.sends && r.to === "customer")!.why}. Ask the builder to set it up.</p>}
       <Dialog open={shown !== null} onClose={() => setShown(null)} title="Sample email">
         {shown && (
           <div className="grid gap-3 text-sm">

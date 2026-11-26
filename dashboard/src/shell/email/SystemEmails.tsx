@@ -1,6 +1,6 @@
 import { getBusiness } from "@/kit/business";
 import { isEmailOn, readEmailSettings } from "@/kit/emailSettings";
-import { ownDomain } from "@/kit/mailer";
+import { canEmailCustomers } from "@/kit/mailer";
 import { loadSystems } from "@/shell/registry";
 import EmailList from "./EmailList";
 
@@ -8,8 +8,9 @@ import EmailList from "./EmailList";
 // it is clear nothing was forgotten.
 export default async function SystemEmails() {
   const settings = await readEmailSettings();
-  // Studio emails always can; customer emails need the studio's own domain. Reminders are not built.
-  const canSend = (e: { to: string; id: string }) => e.id !== "reminder" && (e.to !== "customer" || ownDomain());
+  // Studio emails always can; customer emails need Gmail or a domain; reminders also need the daily run.
+  const morning = Boolean((process.env.CRON_SECRET ?? "").trim()); // the daily run that sends reminders
+  const canSend = (e: { to: string; id: string }) => (e.to !== "customer" || canEmailCustomers()) && (e.id !== "reminder" || morning);
   const systems = [...loadSystems().systems].sort((a, b) => b.emails.length - a.emails.length);
   return (
     <div className="grid gap-4">
@@ -20,7 +21,7 @@ export default async function SystemEmails() {
           title={s.name}
           icon={s.icon}
           from={settings.senderName || getBusiness().name}
-          rows={s.emails.map((e) => ({ id: e.id, label: e.label, when: e.when ?? "", to: e.to, required: e.required, sends: canSend(e), why: e.id === "reminder" ? "Reminders are not built yet" : "Needs your own web address", on: canSend(e) && (e.required || isEmailOn(settings, s.id, e.id, e.default)) }))}
+          rows={s.emails.map((e) => ({ id: e.id, label: e.label, when: e.when ?? "", to: e.to, required: e.required, sends: canSend(e), why: e.id === "reminder" && canEmailCustomers() ? "Needs the daily run (CRON_SECRET)" : "Connect Gmail to email customers", on: canSend(e) && (e.required || isEmailOn(settings, s.id, e.id, e.default)) }))}
         />
       ))}
     </div>

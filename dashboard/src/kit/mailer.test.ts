@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { sendMail } from "./mailer";
+import nodemailer from "nodemailer";
+import { canEmailCustomers, sendMail } from "./mailer";
 
 const settings = { senderName: 'Selah "Studio"', replyTo: "reply@x.test", staffTo: "", switches: {} };
 const message = { to: "studio@x.test", subject: "New booking:\nMaria", text: "Maria booked." };
@@ -34,5 +35,24 @@ describe("sending email", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 403 })));
     expect(await sendMail(message, settings)).toEqual({ ok: false, why: "own-address" });
+  });
+});
+
+describe("through the studio's Gmail", () => {
+  it("is used when set, ignores the spaces in the app password, and lets customers be emailed", async () => {
+    on();
+    expect(canEmailCustomers()).toBe(false); // Resend's test address reaches only its own account
+    vi.stubEnv("GMAIL_USER", "studio@gmail.test");
+    vi.stubEnv("GMAIL_APP_PASSWORD", "abcd efgh ijkl mnop");
+    expect(canEmailCustomers()).toBe(true);
+    const sent = vi.fn(async () => ({}));
+    const made = vi.spyOn(nodemailer, "createTransport").mockReturnValue({ sendMail: sent } as never);
+    const web = vi.fn();
+    vi.stubGlobal("fetch", web);
+    expect(await sendMail(message, settings)).toEqual({ ok: true });
+    expect((made.mock.calls[0][0] as { auth: { pass: string } }).auth.pass).toBe("abcdefghijklmnop");
+    expect(sent).toHaveBeenCalledWith({ from: '"Selah Studio" <studio@gmail.test>', to: "studio@x.test", subject: "New booking: Maria", text: "Maria booked.", replyTo: "reply@x.test" });
+    expect(web).not.toHaveBeenCalled();
+    made.mockRestore();
   });
 });

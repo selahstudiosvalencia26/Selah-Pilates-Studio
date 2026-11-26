@@ -15,10 +15,10 @@ const tone = { fine: "text-success", soon: "text-warning", lapsed: "text-danger"
 type Row = { label: string; used: number; limit: number; words: string };
 
 const emailRows = (e: Extract<EmailCount, { ok: true }>): Row[] => {
-  const some = e.atLeast ? "At least " : "";
+  const limit = EMAIL_LIMITS[e.via];
   return [
-    { label: "Today", used: e.today, limit: EMAIL_LIMITS.day, words: `${some}${e.today} of ${EMAIL_LIMITS.day}` },
-    { label: "This month", used: e.month, limit: EMAIL_LIMITS.month, words: `${some}${e.month} of ${EMAIL_LIMITS.month}` },
+    { label: "Today", used: e.today, limit: limit.day, words: `${e.today} of ${limit.day}` },
+    { label: "This month", used: e.month, limit: limit.month, words: `${e.month} of ${limit.month}` },
   ];
 };
 const spaceRows = (s: Extract<Space, { ok: true }>): Row[] => [
@@ -26,7 +26,7 @@ const spaceRows = (s: Extract<Space, { ok: true }>): Row[] => [
   { label: "Photos", used: s.files, limit: SPACE_LIMITS.files, words: `${megabytes(s.files)} of ${megabytes(SPACE_LIMITS.files)}` },
 ];
 const emailWords = (e: EmailCount) =>
-  e.ok ? "Free plan limits. Resend counts days in UTC." : e.why === "off" ? "Counted once Resend is connected." : e.why === "key" ? "This key can only send, so it cannot count. See resend.com, Usage." : "Resend could not be reached. See resend.com, Usage.";
+  e.ok ? `Sent by this dashboard through ${e.via === "gmail" ? "Gmail" : "Resend"}. Days are counted in UTC.` : "Counted once email is connected.";
 const spaceWords = (s: Space) =>
   s.ok ? "Free plan limits." : s.why === "off" ? "Shown once Supabase is connected." : "Run the file 002_usage.sql in Supabase to see this.";
 

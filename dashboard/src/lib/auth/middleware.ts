@@ -8,7 +8,7 @@ import { databaseReady, mayOpen, openOnLive } from "./livePages";
 // on the server, so this is the first lock, not the only one.
 
 // Open to anyone: the sign-in screen, its tab icon, and the doors the website uses (booking, and its own public words).
-const OPEN = ["/sign-in", "/brand-icon", "/api/booking", "/api/site-content"];
+const OPEN = ["/sign-in", "/brand-icon", "/api/booking", "/api/site-content", "/api/cron"];
 
 export async function guardRequest(request: NextRequest): Promise<NextResponse> {
   const settings = supabaseSettings();

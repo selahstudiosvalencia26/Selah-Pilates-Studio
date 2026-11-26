@@ -1,6 +1,6 @@
 import { after } from "next/server";
 import { isEmailOn, readEmailSettings } from "@/kit/emailSettings";
-import { mailReady, ownDomain, sendMail, studioAddress } from "@/kit/mailer";
+import { mailReady, canEmailCustomers, sendMail, studioAddress } from "@/kit/mailer";
 import { bookingRef } from "./ref";
 import { formatAccountNumber } from "./accountNumber";
 import { payLabel } from "./schema";
@@ -46,8 +46,8 @@ export function alertStudio(what: What, b: Booking, zone: string): void {
 // ---- to the customer -------------------------------------------------------------------------------------------------------------
 // Nothing the customer typed (name, note) goes into these, so a made-up booking cannot be used to send someone else a message of a
 // stranger's choosing: only the studio's own words, the class and the time.
-export type ForCustomer = "received" | "confirmed" | "cancelled";
-const SWITCH = { received: "request-received", confirmed: "confirmed", cancelled: "declined" } as const;
+export type ForCustomer = "received" | "confirmed" | "cancelled" | "reminder";
+const SWITCH = { received: "request-received", confirmed: "confirmed", cancelled: "declined", reminder: "reminder" } as const;
 
 export function customerWords(what: ForCustomer, b: Booking, settings: Pick<Settings, "zone" | "venue" | "payAccounts">): { subject: string; text: string } {
   const slot = `${b.eventType}, ${whenWords(b.startsAt, settings.zone)}`;
@@ -65,14 +65,15 @@ export function customerWords(what: ForCustomer, b: Booking, settings: Pick<Sett
     received: [owes ? `We are holding your slot: ${slot}.` : `You are booked: ${slot}.`, ...pay],
     confirmed: [`Your slot is confirmed: ${slot}.`, "See you in class."],
     cancelled: [`Your booking was cancelled: ${slot}.`, "If this is a surprise, please message us."],
+    reminder: [`A reminder: your class is tomorrow, ${slot}.`, "To cancel or reschedule, please message us."],
   }[what];
-  const subject = { received: owes ? `Pay to keep your slot: ${slot}` : `You are booked: ${slot}`, confirmed: `Confirmed: ${slot}`, cancelled: `Cancelled: ${slot}` }[what];
+  const subject = { received: owes ? `Pay to keep your slot: ${slot}` : `You are booked: ${slot}`, confirmed: `Confirmed: ${slot}`, cancelled: `Cancelled: ${slot}`, reminder: `Tomorrow: ${slot}` }[what];
   return { subject, text: [...lines, "", `Booking ID: ${bookingRef(b.id)}`, studio].join("\n") };
 }
 
 /** Email the customer about their booking, if they gave an email and the studio can send to it. Never gets in the way. */
 export function tellCustomer(what: ForCustomer, bookingId: string): void {
-  if (!ownDomain()) return;
+  if (!canEmailCustomers()) return;
   const run = async () => {
     try {
       const { bookings, settings } = await readData();
