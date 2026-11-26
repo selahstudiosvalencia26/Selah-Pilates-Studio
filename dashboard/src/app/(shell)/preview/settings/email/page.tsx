@@ -4,6 +4,7 @@ import { lastEmail, mailReady } from "@/kit/mailer";
 import { currentUser } from "@/lib/auth/server";
 import EmailDetailsForm from "@/shell/email/EmailDetailsForm";
 import SystemEmails from "@/shell/email/SystemEmails";
+import SampleEmails from "@/systems/booking/SampleEmails";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default async function EmailSettingsPage() {
           {last.ok ? "Last email sent" : "Last email was not sent"} {when(last.at)} to {last.to}.{!last.ok && ` Reason from the email service: ${last.why}`}
         </p>
       )}
+      {mailReady() && <SampleEmails start={replyTo} />}
       <SystemEmails />
     </EmailDetailsForm>
   );
