@@ -104,6 +104,9 @@ export default function BookingList({ bookings, zone, now, removedId, heading, r
                   <span className="block truncate">{whenLine(b, zone)}</span>
                   {!b.sessionKey && <span className="block truncate text-xs text-text-soft">{depositLine(b, { zone, ...rule })}</span>}
                 </span>
+                {b.deposit === "waiting" && b.history.some((h) => h.what === "Customer sent a payment screenshot") && (
+                  <span className="shrink-0 rounded-md bg-selected px-2 py-0.5 text-xs font-medium text-accent-ink">Receipt sent</span>
+                )}
                 <StatusTag booking={b} />
               </Link>
             </li>

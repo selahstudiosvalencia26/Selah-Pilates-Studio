@@ -1,6 +1,7 @@
 import { AppError, safeMessage } from "@/kit/errors";
 import { createLimiter, waitWords } from "@/kit/rateLimit";
 import { todayInZone } from "@/kit/time";
+import { proofCode } from "./proof";
 import { addBooking, bookClass } from "./service";
 import { formatAccountNumber } from "./accountNumber";
 import { payLabel } from "./schema";
@@ -122,7 +123,7 @@ export async function request(body: unknown, caller: string, now: Date = new Dat
     // Waiting for a deposit: the customer is shown how to pay. (A venue can instead ask only after staff confirm.)
     if ((settings.mode === "classes" || data.settings.depositWhen === "request") && made?.deposit === "waiting") {
       const accounts = data.settings.payAccounts.map((a) => ({ label: payLabel(a), name: a.name, number: formatAccountNumber(a.kind, a.number), qr: a.qr }));
-      return good({ message: settings.mode === "classes" ? "Your slot is on hold. Pay the deposit to keep it." : THANKS[settings.mode], pay: { amount: made.depositAmount, payBy: made.payBy ?? null, accounts } });
+      return good({ message: settings.mode === "classes" ? "Your slot is on hold. Pay the deposit to keep it." : THANKS[settings.mode], pay: { amount: made.depositAmount, payBy: made.payBy ?? null, accounts, id, code: proofCode(id) } });
     }
     return good({ message: THANKS[settings.mode] });
   } catch (e) {

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { myPermissions } from "@/kit/session";
 import { todayInZone } from "@/kit/time";
+import { readProof } from "@/systems/booking/proof";
 import BookingActions from "@/systems/booking/BookingActions";
 import { depositLine, paymentMessage, sizeLine, whenLine } from "@/systems/booking/format";
 import PaymentRequest from "@/systems/booking/PaymentRequest";
@@ -15,7 +17,8 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const { bookings, settings } = await readData();
   const b = bookings.find((x) => x.id === id && x.deletedAt === null);
-  if (!b) notFound();
+  if (!b || !(await myPermissions()).some((x) => x === "*" || x === "booking.view")) notFound();
+  const proof = await readProof(b.id);
   const zone = settings.zone;
   const pesos = ((b.depositAmount || depositFor(settings, b.price) || settings.depositAmount) / 100).toFixed(2).replace(/\.00$/, "");
 
@@ -43,6 +46,18 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
           <StatusTag booking={b} />
         </div>
       </div>
+      {proof && (
+        <section aria-labelledby="proof" className="grid gap-3 rounded-xl border border-accent bg-card p-4">
+          <div>
+            <h3 id="proof" className="text-base font-medium">
+              Payment screenshot
+            </h3>
+            <p className="text-sm text-text-soft">Sent {whenWords(proof.at, zone)}. Check the money really arrived before marking it paid.</p>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- a private picture, sent with the page */}
+          <img src={proof.image} alt={`Payment screenshot from ${b.customerName}`} className="max-h-[32rem] w-auto max-w-full justify-self-start rounded-lg border border-border" />
+        </section>
+      )}
       <BookingActions booking={b} depositDefault={pesos} today={todayInZone(zone)} />
       {b.status === "requested" && b.deposit === "waiting" && <PaymentRequest message={paymentMessage(b, settings)} accounts={settings.payAccounts} />}
       <dl className="grid divide-y divide-border rounded-xl border border-border bg-card">

@@ -9,6 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import { Button, LinkButton } from "@/components/Button";
+import PayProof from "@/components/PayProof";
 import { bookingApi } from "@/content/booking";
 import { formatPhoneBox } from "@/lib/phone";
 
@@ -33,6 +34,8 @@ type Pay = {
   amount: number;
   payBy: string | null;
   accounts: { label: string; name: string; number: string; qr: string }[];
+  id?: string; // for attaching the receipt
+  code?: string;
 };
 
 const WEEKS = 3; // this week and the next two, each Monday to Sunday
@@ -278,8 +281,9 @@ export function OnlineBooking({
                 </li>
               ))}
             </ul>
-            <p className="mt-6">
-              Then send us a screenshot of your payment
+            {pay.id && pay.code && <PayProof id={pay.id} code={pay.code} />}
+            <p className="mt-6 text-muted">
+              You can also send it
               {messenger ? (
                 <>
                   {" "}
@@ -293,7 +297,9 @@ export function OnlineBooking({
                     Messenger
                   </a>
                 </>
-              ) : null}
+              ) : (
+                " to us in a message"
+              )}
               .
             </p>
           </>
@@ -517,7 +523,7 @@ export function OnlineBooking({
 
       {ask > 0 && (
         <p className="text-base">
-          {peso(ask)} deposit. You will see how to pay next
+          {peso(ask)} {deposit?.percent === 100 ? "to pay" : "deposit"}. You will see how to pay next
           {deposit?.hours ? `, within ${deposit.hours} hours` : ""}.
         </p>
       )}

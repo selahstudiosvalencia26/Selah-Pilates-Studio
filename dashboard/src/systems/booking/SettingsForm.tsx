@@ -54,6 +54,8 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
     </div>
   );
 
+  const fullPrice = !venue && s.depositKind === "percent" && s.depositPercent === 100;
+
   const depositSection = (
           <section className="grid gap-3" aria-labelledby="dep-h">
             <h2 id="dep-h" className="text-base font-medium">
@@ -75,9 +77,10 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
                   <label htmlFor="s-kind" className={labelCls}>
                     Ask for
                   </label>
-                  <Select id="s-kind" label="Ask for" value={s.depositKind} onChange={(x) => edit({ depositKind: x as Settings["depositKind"] })} options={[{ value: "fixed", label: "The same amount every booking" }, { value: "percent", label: "A percentage of the class price" }]} />
+                  <Select id="s-kind" label="Ask for" value={fullPrice ? "full" : s.depositKind} onChange={(x) => edit(x === "full" ? { depositKind: "percent", depositPercent: 100 } : x === "percent" ? { depositKind: "percent", depositPercent: fullPrice ? 50 : s.depositPercent } : { depositKind: "fixed" })} options={[{ value: "full", label: "The full class price" }, { value: "percent", label: "A percentage of the class price" }, { value: "fixed", label: "The same amount every booking" }]} />
+                  {fullPrice && <p className="mt-1.5 text-sm text-text-soft">Customers pay the price of the class they book, times the number of people.</p>}
                 </div>
-                {s.depositKind === "percent" && (
+                {s.depositKind === "percent" && !fullPrice && (
                   <div>
                     <label htmlFor="s-percent" className={labelCls}>
                       Percentage (%)
@@ -89,6 +92,7 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
             )}
             {s.depositRequired && (
               <div className="grid gap-3 sm:grid-cols-2">
+                {!fullPrice && (
                 <div>
                 <label htmlFor="s-deposit" className={labelCls}>
                   {s.depositKind === "percent" && (!venue || s.priceType !== "none") ? "Fixed amount, for bookings with no price (₱)" : "Deposit amount (₱)"}
@@ -101,6 +105,7 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
                   </p>
                 )}
                 </div>
+                )}
                 <div>
                 <label htmlFor="s-hours" className={labelCls}>
                   Hours to pay
