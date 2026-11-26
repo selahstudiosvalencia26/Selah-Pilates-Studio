@@ -1,5 +1,5 @@
-import Switch from "@/systems/booking/Switch";
-import { SETTING_VIEWS } from "@/systems/booking/views";
+import Link from "next/link";
+import { buttonClass } from "@/kit/Button";
 import { todayInZone } from "@/kit/time";
 import ClassPicker from "@/systems/booking/ClassPicker";
 import { readData } from "@/systems/booking/store";
@@ -13,7 +13,11 @@ export default async function CustomerViewPage() {
   const today = todayInZone(s.zone);
   return (
     <>
-      <Switch label="Settings view" items={SETTING_VIEWS} />
+      <div className="mb-5">
+        <Link href="/booking/settings" className={buttonClass()}>
+          Back to settings
+        </Link>
+      </div>
       <div className="grid gap-4">
         <p className="text-sm text-text-soft">This is the booking page your customers use. Anything sent from here is a real booking.</p>
         {s.mode === "classes" ? <ClassPicker today={today} zone={s.zone} /> : <VenuePicker today={today} maxGuests={s.maxGuests} />}

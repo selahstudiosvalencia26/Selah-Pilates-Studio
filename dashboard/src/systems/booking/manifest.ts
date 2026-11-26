@@ -37,10 +37,10 @@ export default defineSystem({
   labels: { booking: "Booking" },
   today: [{ id: "new-requests", title: "New booking requests", permission: "booking.view" }],
   emails: [
-    { id: "request-received", label: "We got your request", when: "A customer sends a request", to: "customer", required: false, default: true },
-    { id: "new-request", label: "New booking request", when: "A customer sends a request", to: "staff", required: false, default: true },
-    { id: "confirmed", label: "Your booking is confirmed", when: "Staff confirm a booking", to: "customer", required: false, default: true },
-    { id: "declined", label: "Your booking could not be confirmed", when: "Staff decline a request", to: "customer", required: false, default: true },
+    { id: "new-request", label: "New booking or receipt", when: "A customer books or sends a receipt", to: "staff", required: false, default: true },
+    { id: "request-received", label: "We got your booking", when: "A customer books", to: "customer", required: false, default: true },
+    { id: "confirmed", label: "Your booking is confirmed", when: "You mark the payment received", to: "customer", required: false, default: true },
+    { id: "declined", label: "Your booking was cancelled", when: "You cancel a booking", to: "customer", required: false, default: true },
     { id: "reminder", label: "A reminder before your booking", when: "1 day before the booking", to: "customer", required: false, default: false },
   ],
   public: [

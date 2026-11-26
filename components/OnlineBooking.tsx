@@ -179,6 +179,9 @@ export function OnlineBooking({
     });
   }, [key]);
 
+  // Said plainly, and promising nothing the studio cannot do yet.
+  const emailWhy = <p className="mt-2 text-base text-muted">So the studio can reach you about your booking, such as a change of time or your payment.</p>;
+
   const contact = (
     <LinkButton href="/contact" variant="dark" className="mt-6">
       Send us a message
@@ -459,6 +462,7 @@ export function OnlineBooking({
               autoComplete: "email",
               placeholder: "you@example.com",
             })}
+            {emailWhy}
           </div>
         </div>
       )}
@@ -471,6 +475,7 @@ export function OnlineBooking({
             autoComplete: "email",
             placeholder: "you@example.com",
           })}
+          {emailWhy}
         </div>
       )}
 

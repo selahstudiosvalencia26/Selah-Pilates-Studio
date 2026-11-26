@@ -1,5 +1,5 @@
-import Switch from "@/systems/booking/Switch";
-import { SETTING_VIEWS } from "@/systems/booking/views";
+import Link from "next/link";
+import { buttonClass } from "@/kit/Button";
 import SettingsForm from "@/systems/booking/SettingsForm";
 import { readData } from "@/systems/booking/store";
 
@@ -8,7 +8,11 @@ export const dynamic = "force-dynamic";
 export default async function BookingSettingsPage() {
   return (
     <>
-      <Switch label="Settings view" items={SETTING_VIEWS} />
+      <div className="mb-5 flex justify-end">
+        <Link href="/booking/settings/preview" className={buttonClass()}>
+          See what customers see
+        </Link>
+      </div>
       <SettingsForm initial={(await readData()).settings} />
     </>
   );

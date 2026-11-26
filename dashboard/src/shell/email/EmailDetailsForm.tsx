@@ -10,7 +10,7 @@ import { saveEmailDetails, sendTestEmail } from "./actions";
 
 // Set up once, used by every system's emails. One studio email gets both customer replies and booking alerts, so there is one box for
 // it and nothing to decide. Beside it, an example of the alert the studio gets, and a real test.
-export default function EmailDetailsForm({ initial, suggestion, ready, customers }: { initial: EmailDetails; suggestion?: string; ready: boolean; customers: boolean }) {
+export default function EmailDetailsForm({ initial, suggestion, ready, customers, children }: { initial: EmailDetails; suggestion?: string; ready: boolean; customers: boolean; children?: React.ReactNode }) {
   const [v, setV] = useState(initial);
   const [saved, setSaved] = useState(initial);
   const [message, setMessage] = useState<SaveMessage>(null);
@@ -74,6 +74,9 @@ export default function EmailDetailsForm({ initial, suggestion, ready, customers
           </div>
         </section>
       </div>
+
+      {/* The emails themselves, each with its switch. They save as soon as they are switched. */}
+      {children && <div className="mt-6">{children}</div>}
 
       <SaveBar dirty={dirty} pending={pending} message={message}>
         {ready && (

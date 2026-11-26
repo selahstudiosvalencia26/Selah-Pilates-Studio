@@ -1,14 +1,6 @@
-import Switch from "@/systems/booking/Switch";
-import { SETTING_VIEWS } from "@/systems/booking/views";
-import SystemEmails from "@/shell/email/SystemEmails";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
+// The booking emails now sit with the studio email, in Settings.
 export default function BookingEmailsPage() {
-  return (
-    <>
-      <Switch label="Settings view" items={SETTING_VIEWS} />
-      <SystemEmails system="booking" />
-    </>
-  );
+  redirect("/preview/settings/email");
 }
