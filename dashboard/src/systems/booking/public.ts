@@ -58,7 +58,9 @@ export async function availability(query: URLSearchParams, now: Date = new Date(
       .flatMap((d) => occurrencesOn(s, d))
       .filter((o) => o.startsAt > now.toISOString())
       .map((o) => ({ key: o.key, title: o.title, instructor: o.instructor, place: o.place, startsAt: o.startsAt, endsAt: o.endsAt, capacity: o.capacity, spotsLeft: spotsLeft(bookings, o, s.holdWhilePaying, now), price: o.price ?? null }));
-    return good({ ...about, classes });
+    // Today's classes that have already begun are listed apart: shown on the website as unavailable, never offered.
+    const started = from <= today ? occurrencesOn(s, today).filter((o) => o.startsAt <= now.toISOString()).map((o) => ({ key: o.key, title: o.title, startsAt: o.startsAt, endsAt: o.endsAt, price: o.price ?? null })) : [];
+    return good({ ...about, classes, ...(started.length ? { started } : {}) });
   }
 
   const month = query.get("month");

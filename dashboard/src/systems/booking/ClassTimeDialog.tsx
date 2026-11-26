@@ -26,9 +26,10 @@ type Props = {
   onSave: () => void;
   onRemove: () => void;
   onClose: () => void;
+  pickDay?: boolean; // choose the day too, when it was not chosen by where the person pressed
 };
 
-export default function ClassTimeDialog({ draft, names, days, problem, onChange, onPickClass, onSave, onRemove, onClose }: Props) {
+export default function ClassTimeDialog({ draft, names, days, problem, onChange, onPickClass, onSave, onRemove, onClose, pickDay = false }: Props) {
   if (!draft) return null;
   const [hour, minute] = draft.time.split(":");
   const day = days.find((d) => d.value === draft.weekday)?.label ?? "";
@@ -39,7 +40,7 @@ export default function ClassTimeDialog({ draft, names, days, problem, onChange,
     <Dialog
       open
       onClose={onClose}
-      title={draft.id ? "Change this time" : `Add to ${day}`}
+      title={draft.id ? "Change this time" : pickDay ? `Add a ${draft.title} time` : `Add to ${day}`}
       actions={
         <>
           {draft.id && (
@@ -71,7 +72,7 @@ export default function ClassTimeDialog({ draft, names, days, problem, onChange,
         )}
       </div>
 
-      {draft.id && (
+      {(draft.id || pickDay) && (
         <div role="radiogroup" aria-label="Day" className="grid gap-2">
           <p className={labelCls}>Day</p>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">

@@ -69,9 +69,12 @@ const GROUPS: { kind: ClassKind; title: string; add: string }[] = [
 export default function ClassesForm({
   initial,
   photos,
+  times,
 }: {
   initial: ClassList;
   photos: Photos;
+  /** Where each saved class shows its weekly times, when the screen has a booking system to ask. */
+  times?: (facts: { name: string; session: boolean; minutes: number | null; price: number | null }) => React.ReactNode;
 }) {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>(() => initial.map(toRow));
@@ -212,6 +215,13 @@ export default function ClassesForm({
                       )}
                     </div>
                   </div>
+
+                  {times &&
+                    (saved && r.name.trim() ? (
+                      times({ name: r.name.trim(), session: r.group === "Private reformer session", minutes: num(r.durationMinutes), price: num(r.pricePhp) === null ? null : Math.round(num(r.pricePhp)! * 100) })
+                    ) : (
+                      <p className="text-sm text-text-soft">Save the class first, then you can set its times.</p>
+                    ))}
 
                   <div>
                     <button type="button" className={btn} aria-expanded={more} onClick={() => setMore(!more)}>

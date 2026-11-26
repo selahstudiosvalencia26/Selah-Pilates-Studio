@@ -26,6 +26,7 @@ type Slot = {
   endsAt: string;
   spotsLeft: number;
   price: number | null; // centavos
+  started?: boolean; // today, already begun: shown, never offered
 };
 type Deposit = {
   amount: number;
@@ -116,6 +117,7 @@ export function OnlineBooking({
   messenger: string | null;
 }) {
   const [slots, setSlots] = useState<Slot[] | null>(null);
+  const [gone, setGone] = useState<Slot[]>([]); // today's classes that have started
   const [deposit, setDeposit] = useState<Deposit>(null);
   const [offline, setOffline] = useState(false);
   const [only, setOnly] = useState(picked);
@@ -146,6 +148,7 @@ export function OnlineBooking({
       const j = await r.json();
       if (!j.ok) return setOffline(true);
       setSlots(j.data.classes);
+      setGone(((j.data.started ?? []) as Slot[]).map((c) => ({ ...c, spotsLeft: 0, started: true })));
       setDeposit(j.data.deposit ?? null);
       setOffline(false);
     } catch {
@@ -349,7 +352,10 @@ export function OnlineBooking({
   // The week on screen: the one chosen with the arrows, otherwise the one holding the picked day.
   const page = week ?? Math.floor(all.indexOf(activeDay) / 7);
   const days = all.slice(page * 7, page * 7 + 7);
-  const times = shown.filter((s) => dayOf(s.startsAt) === activeDay);
+  // Every time on that day, the ones that cannot be booked too, so people see what is available and what is not.
+  const times = [...gone.filter((s) => !match || s.title === match), ...shown]
+    .filter((s) => dayOf(s.startsAt) === activeDay)
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const turn = (to: number) => {
     const open = all.slice(to * 7, to * 7 + 7).filter((d) => d >= today);
     setWeek(to);
@@ -670,7 +676,7 @@ export function OnlineBooking({
                 type="button"
                 aria-pressed={on}
                 disabled={d < today}
-                aria-label={`${longDay(iso)}${has.has(d) ? "" : ", no classes"}`}
+                aria-label={`${longDay(iso)}${has.has(d) ? "" : gone.some((g) => dayOf(g.startsAt) === d) ? ", nothing left to book" : ", no classes"}`}
                 onClick={() => {
                   setDay(d);
                   setKey("");
@@ -700,14 +706,19 @@ export function OnlineBooking({
         )}
         <ul>
           {times.map((s) => {
-            const full = s.spotsLeft === 0;
+            const full = s.spotsLeft === 0; // also true for one that has started
             const on = s.key === key;
+            const state = s.started
+              ? "Unavailable, already started"
+              : full
+                ? "Unavailable, fully booked"
+                : `Available · ${s.spotsLeft} ${s.spotsLeft === 1 ? "slot" : "slots"} left`;
             const minutes = Math.round(
               (Date.parse(s.endsAt) - Date.parse(s.startsAt)) / 60_000,
             );
             return (
               <li key={s.key} className="border-b border-line">
-                <div className="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 py-5 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-6">
+                <div className={`grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 py-5 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-6 ${full ? "opacity-60" : ""}`}>
                   <p>
                     <span className="block font-medium">
                       {clock(s.startsAt)}
@@ -724,12 +735,7 @@ export function OnlineBooking({
                       </span>
                     )}
                     <span className="block text-base text-muted">
-                      {[
-                        full
-                          ? "Full"
-                          : `${s.spotsLeft} ${s.spotsLeft === 1 ? "slot" : "slots"} left`,
-                        s.price ? peso(s.price) : "",
-                      ]
+                      {[state, s.price ? peso(s.price) : ""]
                         .filter(Boolean)
                         .join(" · ")}
                     </span>
@@ -745,7 +751,7 @@ export function OnlineBooking({
                     }}
                     className={`min-h-11 rounded-full border border-ink px-5 text-base font-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-50 ${on ? "bg-page text-ink" : "bg-ink text-page"}`}
                   >
-                    {full ? "Full" : on ? "Close" : "Book"}
+                    {s.started ? "Closed" : full ? "Full" : on ? "Close" : "Book"}
                   </button>
                 </div>
                 {on && details}
