@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Icon from "@/kit/Icon";
 import Select from "@/kit/Select";
 import { saveClasses } from "./actions";
 import {
@@ -18,7 +19,7 @@ import { Remove } from "./Remove";
 import { useUndo } from "./Undo";
 import { useSavePart } from "./SaveGroup";
 import { classSlot } from "./site/slots";
-import { btn, field, hintCls, labelCls } from "./ui";
+import { btn, field, hintCls, labelCls, link } from "./ui";
 
 // The class list: every class and private session, in the order the website shows them. A row shows the name and the facts at a
 // glance; Edit opens the rest (note, level, focus, length, price and the photo). Add a class or a private session at the bottom.
@@ -60,6 +61,8 @@ const choices = (list: string[], current: string, none?: string, say = (v: strin
   ...(none ? [{ value: "", label: none }] : []),
   ...(current && !list.includes(current) ? [current, ...list] : list).map((v) => ({ value: v, label: say(v) })),
 ];
+
+const arrowBtn = "grid h-11 w-9 place-items-center rounded-lg text-text-soft transition-colors hover:bg-hover hover:text-text focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent";
 
 const GROUPS: { kind: ClassKind; title: string; add: string }[] = [
   { kind: "Group mat class", title: "Group classes", add: "Add a group class" },
@@ -175,18 +178,21 @@ export default function ClassesForm({
                   </p>
                   <p className="text-xs text-text-soft">{facts}</p>
                 </div>
-                <button
-                  type="button"
-                  aria-expanded={isOpen}
-                  onClick={() => setOpen(isOpen ? null : r.slug)}
-                  className={btn}
-                >
+                <span className="flex shrink-0 items-center">
+                  <button type="button" className={arrowBtn} disabled={i === 0} onClick={() => swap(r.slug, -1)} aria-label={`Move ${r.name || "this class"} up`} title="Move up">
+                    <Icon name="chevron-up" className="h-4 w-4" />
+                  </button>
+                  <button type="button" className={arrowBtn} disabled={i === own.length - 1} onClick={() => swap(r.slug, 1)} aria-label={`Move ${r.name || "this class"} down`} title="Move down">
+                    <Icon name="chevron-down" className="h-4 w-4" />
+                  </button>
+                </span>
+                <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : r.slug)} className={btn}>
                   {isOpen ? "Done" : "Edit"}
                 </button>
               </div>
               <Collapse open={isOpen}>
-                <div className="grid gap-5 border-t border-border p-4">
-                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-4 border-t border-border p-4">
+                  <div className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
                     <div>
                       <label htmlFor={`${id}-name`} className={labelCls}>
                         Name
@@ -203,29 +209,34 @@ export default function ClassesForm({
                       <label htmlFor={`${id}-price`} className={labelCls}>
                         Price (pesos)
                       </label>
-                      <input id={`${id}-price`} inputMode="numeric" value={r.pricePhp} onChange={(e) => edit(r.slug, { pricePhp: e.target.value })} className={field} />
-                      {prices.length > 0 && (
-                        <div role="group" aria-label="Prices you already use" className="mt-2 flex flex-wrap gap-2">
-                          {prices.map((p) => (
-                            <button key={p} type="button" aria-pressed={r.pricePhp.replace(/,/g, "") === p} onClick={() => edit(r.slug, { pricePhp: p })} className={`${btn} aria-pressed:border-accent`}>
-                              {peso(p)}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input id={`${id}-price`} inputMode="numeric" value={r.pricePhp} onChange={(e) => edit(r.slug, { pricePhp: e.target.value })} className={`${field} !w-28`} />
+                        {prices.length > 0 && (
+                          <div role="group" aria-label="Prices you already use" className="flex flex-wrap gap-1.5">
+                            {prices.map((p) => (
+                              <button key={p} type="button" aria-pressed={r.pricePhp.replace(/,/g, "") === p} onClick={() => edit(r.slug, { pricePhp: p })} className="min-h-11 rounded-lg border border-border px-3 text-sm text-text-soft transition-colors hover:bg-hover hover:text-text focus-visible:outline-2 focus-visible:outline-accent aria-pressed:border-accent aria-pressed:bg-selected aria-pressed:font-medium aria-pressed:text-text">
+                                {peso(p)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {times &&
-                    (saved && r.name.trim() ? (
+                  {times && (
+                    <div className="rounded-xl bg-surface p-4">
+                    {saved && r.name.trim() ? (
                       times({ name: r.name.trim(), session: r.group === "Private reformer session", minutes: num(r.durationMinutes), price: num(r.pricePhp) === null ? null : Math.round(num(r.pricePhp)! * 100) })
                     ) : (
                       <p className="text-sm text-text-soft">Save the class first, then you can set its times.</p>
-                    ))}
+                    )}
+                    </div>
+                  )}
 
                   <div>
-                    <button type="button" className={btn} aria-expanded={more} onClick={() => setMore(!more)}>
-                      {more ? "Hide extras" : "Add a note or level (optional)"}
+                    <button type="button" className={`${link} min-h-11`} aria-expanded={more} onClick={() => setMore(!more)}>
+                      {more ? "Hide note and level" : "+ Add a note or level (optional)"}
                     </button>
                   </div>
                   {more && (
@@ -264,26 +275,8 @@ export default function ClassesForm({
                     </p>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      className={btn}
-                      disabled={i === 0}
-                      onClick={() => swap(r.slug, -1)}
-                      aria-label={`Move ${r.name || "this class"} up`}
-                    >
-                      Move up
-                    </button>
-                    <button
-                      type="button"
-                      className={btn}
-                      disabled={i === own.length - 1}
-                      onClick={() => swap(r.slug, 1)}
-                      aria-label={`Move ${r.name || "this class"} down`}
-                    >
-                      Move down
-                    </button>
-                    <span className="ml-auto">
+                  <div className="flex justify-end border-t border-border pt-3">
+                    <span>
                       <Remove
                         button
                         what={r.name || "this class"}
