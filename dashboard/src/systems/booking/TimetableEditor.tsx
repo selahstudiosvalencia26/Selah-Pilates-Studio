@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useTransition } from "react";
-import Select from "@/kit/Select";
-import TimeSelect from "@/kit/TimeSelect";
+import { useState, useTransition } from "react";
 import { saveTimetableAction } from "./actions";
-import Collapse from "./Collapse";
+import ClassTimeDialog, { type Draft } from "./ClassTimeDialog";
 import { settingsSchema, type ClassEntry } from "./schema";
-import { btn, card, field, labelCls, link, primary } from "./ui";
+import { btn, link } from "./ui";
 import type { ListedClass } from "./websiteClasses";
 
 // The week as a board: a column for each day. Press Add under a day, choose the class and time, done. Press a time to change or remove
@@ -21,38 +19,38 @@ const clockWords = (t: string) => {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
 
-type Draft = { id: string | null; weekday: ClassEntry["weekday"]; time: string; title: string; spots: string };
-
 export default function TimetableEditor({ initial, classes = [] }: { initial: ClassEntry[]; classes?: ListedClass[] }) {
   const [rows, setRows] = useState(() => [...initial].sort(byWeek));
   const [draft, setDraft] = useState<Draft | null>(null);
   const [problem, setProblem] = useState("");
   const [undo, setUndo] = useState<{ text: string; before: ClassEntry[] } | null>(null);
   const [pending, start] = useTransition();
-  const panel = useRef<HTMLDivElement>(null);
 
   const save = (next: ClassEntry[], done?: () => void) => {
     const parsed = settingsSchema.shape.timetable.safeParse([...next].sort(byWeek));
     if (!parsed.success) return setProblem(parsed.error.issues[0]?.message ?? "Check the details.");
+    // Shown at once and saved behind it. If the save is refused the week goes back to how it was, with the reason.
+    const before = rows;
+    setRows(parsed.data);
+    setProblem("");
+    done?.();
     start(async () => {
-      const r = await saveTimetableAction(parsed.data);
-      if (!r.ok) return setProblem(r.message);
-      setRows(parsed.data);
-      setProblem("");
-      done?.();
+      const r = await saveTimetableAction(parsed.data).catch(() => ({ ok: false as const, message: "Could not save. Check your connection and try again." }));
+      if (r.ok) return;
+      setRows(before);
+      setUndo(null);
+      setProblem(r.message);
     });
   };
 
   const open = (next: Draft) => {
     setDraft(next);
     setProblem("");
-    requestAnimationFrame(() => panel.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }));
   };
   // Spots follow what this class had last time; a private session starts at 1.
   const spotsFor = (title: string) => String(rows.find((r) => r.title === title)?.capacity ?? (classes.find((c) => c.name === title)?.session ? 1 : 12));
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = () => {
     if (!draft) return;
     if (!draft.title.trim()) return setProblem("Choose a class.");
     const found = classes.find((c) => c.name === draft.title);
@@ -94,7 +92,7 @@ export default function TimetableEditor({ initial, classes = [] }: { initial: Cl
   return (
     <div role="group" aria-label="Weekly schedule" className="grid gap-5">
       <p className="text-sm text-text-soft">
-        Your week. Press <span className="font-medium text-text">Add</span> under a day. Press a time to change it. It saves by itself.
+        Your week. Press <span className="font-medium text-text">Add</span> on a day. Press a time to change it. It saves by itself.
         {classes.length > 0 && (
           <>
             {" "}
@@ -107,64 +105,21 @@ export default function TimetableEditor({ initial, classes = [] }: { initial: Cl
         )}
       </p>
 
-      <div ref={panel}>
-        <Collapse open={draft !== null}>
-          {draft && (
-            <form onSubmit={submit} aria-label={draft.id ? "Change this time" : "Add a time"} className={`${card} grid gap-4 p-4`}>
-              <h3 className="text-base font-medium">{draft.id ? "Change this time" : `Add to ${DAY_NAMES[draft.weekday]}`}</h3>
-              <div className={`grid gap-4 sm:grid-cols-2 ${draft.id ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
-                <div>
-                  <label htmlFor="w-class" className={labelCls}>
-                    Class
-                  </label>
-                  {classes.length > 0 ? (
-                    <Select id="w-class" label="Class" value={draft.title} placeholder="Choose a class" onChange={(title) => (setDraft({ ...draft, title, spots: spotsFor(title) }), setProblem(""))} options={names.map((n) => ({ value: n, label: n }))} />
-                  ) : (
-                    <input id="w-class" className={field} value={draft.title} maxLength={60} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
-                  )}
-                </div>
-                {draft.id && (
-                  <div>
-                    <label htmlFor="w-day" className={labelCls}>
-                      Day
-                    </label>
-                    <Select id="w-day" label="Day" value={draft.weekday} onChange={(d) => setDraft({ ...draft, weekday: d as ClassEntry["weekday"] })} options={ORDER.map((d) => ({ value: d, label: DAY_NAMES[d] }))} />
-                  </div>
-                )}
-                <div>
-                  <label htmlFor="w-time" className={labelCls}>
-                    Time
-                  </label>
-                  <TimeSelect id="w-time" label="Time" value={draft.time} onChange={(time) => setDraft({ ...draft, time })} from="05:00" to="22:00" step={15} />
-                </div>
-                <div>
-                  <label htmlFor="w-spots" className={labelCls}>
-                    Slots
-                  </label>
-                  <input id="w-spots" type="number" inputMode="numeric" min={1} className={field} value={draft.spots} onChange={(e) => setDraft({ ...draft, spots: e.target.value })} />
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <button type="submit" className={primary} disabled={pending}>
-                  {pending ? "Saving" : draft.id ? "Save" : "Add"}
-                </button>
-                <button type="button" className={btn} onClick={() => (setDraft(null), setProblem(""))}>
-                  Cancel
-                </button>
-                {draft.id && (
-                  <button type="button" className={`${btn} ml-auto text-danger`} disabled={pending} onClick={remove}>
-                    Remove
-                  </button>
-                )}
-              </div>
-            </form>
-          )}
-        </Collapse>
-      </div>
+      <ClassTimeDialog
+        draft={draft}
+        names={names}
+        days={ORDER.map((d) => ({ value: d, label: DAY_NAMES[d] }))}
+        problem={problem}
+        onChange={(next) => (setDraft(next), setProblem(""))}
+        onPickClass={(title) => draft && (setDraft({ ...draft, title, spots: spotsFor(title) }), setProblem(""))}
+        onSave={submit}
+        onRemove={remove}
+        onClose={() => (setDraft(null), setProblem(""))}
+      />
 
-      <p role="status" aria-live="polite" className={`flex flex-wrap items-center gap-3 text-sm empty:hidden ${problem ? "text-danger" : "text-text-soft"}`}>
-        {problem || undo?.text}
-        {!problem && undo && (
+      <p role="status" aria-live="polite" className={`flex flex-wrap items-center gap-3 text-sm empty:hidden ${problem && !draft ? "text-danger" : "text-text-soft"}`}>
+        {draft ? "" : problem || (pending ? "Saving" : undo?.text)}
+        {!draft && !problem && undo && (
           <button type="button" className={link} onClick={() => save(undo.before, () => setUndo(null))}>
             Undo
           </button>
@@ -172,26 +127,26 @@ export default function TimetableEditor({ initial, classes = [] }: { initial: Cl
       </p>
 
       <div className="@container">
-      <ul className="grid gap-3 @3xl:grid-cols-7 @3xl:gap-2">
+      <ul className="grid gap-3 @2xl:grid-cols-7 @2xl:gap-2">
         {ORDER.map((d) => {
           const day = rows.filter((r) => r.weekday === d);
           return (
-            <li key={d} className="flex min-w-0 flex-wrap items-center gap-2 rounded-xl border border-border p-3 @3xl:flex-col @3xl:flex-nowrap @3xl:items-stretch @3xl:p-2">
-              <h3 className="w-full text-sm font-medium @xl:w-24 @3xl:w-full @3xl:truncate @3xl:px-1">{DAY_NAMES[d]}</h3>
+            <li key={d} className="flex min-w-0 flex-wrap items-center gap-2 rounded-xl border border-border p-3 @2xl:flex-col @2xl:flex-nowrap @2xl:items-stretch @2xl:p-2">
+              <h3 className="w-full text-sm font-medium @xl:w-24 @2xl:w-full @2xl:truncate @2xl:px-1">{DAY_NAMES[d]}</h3>
               {day.map((r) => (
                 <button
                   key={r.id}
                   type="button"
                   aria-label={`Change ${r.title}, ${DAY_NAMES[d]} ${clockWords(r.time)}`}
                   onClick={() => open({ id: r.id, weekday: r.weekday, time: r.time, title: r.title, spots: String(r.capacity) })}
-                  className={`grid min-w-0 rounded-lg border p-3 text-left @3xl:p-2 transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-accent ${draft?.id === r.id ? "border-accent" : "border-border bg-card"}`}
+                  className={`grid min-w-0 rounded-lg border p-3 text-left @2xl:p-2 transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-accent ${draft?.id === r.id ? "border-accent" : "border-border bg-card"}`}
                 >
                   <span className="text-sm font-medium">{clockWords(r.time)}</span>
                   <span className="truncate text-sm">{r.title}</span>
                   <span className="text-xs text-text-soft">{r.capacity === 1 ? "1 slot" : `${r.capacity} slots`}</span>
                 </button>
               ))}
-              <button type="button" className={`${btn} ml-auto justify-center @3xl:ml-0 @3xl:mt-auto`} aria-label={`Add a class on ${DAY_NAMES[d]}`} onClick={() => open({ id: null, weekday: d, time: "09:00", title: "", spots: "12" })}>
+              <button type="button" className={`${btn} ml-auto justify-center @2xl:ml-0 @2xl:mt-auto`} aria-label={`Add a class on ${DAY_NAMES[d]}`} onClick={() => open({ id: null, weekday: d, time: "09:00", title: "", spots: "12" })}>
                 Add
               </button>
             </li>

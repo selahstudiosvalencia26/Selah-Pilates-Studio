@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { accessFor, type Access } from "./access";
 import { supabaseSettings } from "./config";
 
@@ -27,12 +28,12 @@ async function client() {
 }
 
 /** The signed-in person with what they may do. null when nobody is signed in, or they are not (or no longer) on the team. */
-export async function currentUser(): Promise<Access | null> {
+export const currentUser = cache(async (): Promise<Access | null> => {
   const supabase = await client();
   if (!supabase) return null;
   const { data } = await supabase.auth.getUser();
   return accessFor(data.user?.email);
-}
+});
 
 /** true only for a right password AND someone who may get in. Anyone else is left signed out, with no hint of which part was wrong. */
 export async function passwordSignIn(email: string, password: string): Promise<boolean> {
