@@ -3,23 +3,23 @@ import { BOOKING_RULES } from "@/content/rules";
 import { site } from "@/content/site";
 import { pageMeta } from "@/lib/seo";
 
-export const metadata = pageMeta("Privacy and booking rules", "What we ask for when you book, why, and our booking and refund rules.", "/privacy");
+export const metadata = pageMeta("Privacy and booking rules", "What we ask for when you book, why, and our booking, cancellation and refund rules.", "/privacy");
 
 const sections: { title: string; points: string[] }[] = [
-  { title: "Booking and refunds", points: BOOKING_RULES },
+  { title: "Booking, cancellation and refunds", points: BOOKING_RULES },
   {
     title: "What we collect",
     points: [
       "Your name, phone number and email, and any note you add.",
       "The class you book, and your payment screenshot if you attach one.",
-      "If you ask for a refund, the proof you send us, such as a medical certificate.",
+      "If you ask for a cancellation or refund, the proof you send us, such as a medical certificate.",
     ],
   },
   {
     title: "Why we collect it",
     points: [
       "To keep your slot, check your payment and reach you about your class.",
-      "To decide a refund request.",
+      "To decide a cancellation or refund request.",
       "We do not sell your information or use it for advertising.",
     ],
   },
@@ -44,7 +44,7 @@ const sections: { title: string; points: string[] }[] = [
 export default function Privacy() {
   return (
     <>
-      <PageHero kicker="Privacy" title="Your booking, your information" text={`What ${site.name} asks for, why, and the rules for booking and refunds.`} />
+      <PageHero kicker="Privacy" title="Your booking, your information" text={`What ${site.name} asks for, why, and the rules for booking, cancellation and refunds.`} />
       <section className="bg-page pb-24">
         <div className={wrap}>
           <div className="mx-auto grid max-w-3xl gap-10">
