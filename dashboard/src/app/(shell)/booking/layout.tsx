@@ -5,6 +5,7 @@ import SystemTabs from "@/shell/frame/SystemTabs";
 import { sectionsOf } from "@/shell/menu";
 import { loadSystems } from "@/shell/registry";
 import { readData } from "@/systems/booking/store";
+import { BOOKING_VIEWS } from "@/systems/booking/views";
 
 // Bookings: the tabs are the pages listed in the system's description file. Sign-in is not built yet, so the sample owner stands in for the person.
 export default async function BookingLayout({ children }: { children: React.ReactNode }) {
@@ -15,7 +16,7 @@ export default async function BookingLayout({ children }: { children: React.Reac
   return (
     <>
       <PageHeader title="Bookings" description={settings.mode === "classes" ? "Who is booked into your classes." : "Requests, dates and deposits for your venue."} />
-      {found && sections.length > 1 && <SystemTabs name={found.name} sections={sections} />}
+      {found && sections.length > 1 && <SystemTabs name={found.name} sections={sections} views={{ "/booking": BOOKING_VIEWS }} />}
       <div>{children}</div>
     </>
   );

@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { slideStyle, useSlide } from "@/kit/useSlide";
 import { activeSection, type MenuChild } from "@/shell/menu";
 import { PendingReporter } from "./NavPending";
+import TabMenu from "./TabMenu";
 import { scrollToCentre } from "./tabScroll";
 
 // A system's own pages as tabs along the top of its screen, on every device, so the side menu stays one flat list.
@@ -13,9 +14,12 @@ import { scrollToCentre } from "./tabScroll";
 export default function SystemTabs({
   name,
   sections,
+  views,
 }: {
   name: string;
   sections: MenuChild[];
+  /** Views of one tab, keyed by that tab's address: they open in a small menu under it. */
+  views?: Record<string, MenuChild[]>;
 }) {
   const path = usePathname();
   const current = activeSection(sections, path);
@@ -44,17 +48,26 @@ export default function SystemTabs({
         />
         {sections.map((s) => {
           const on = s.href === current;
+          const link = (
+            <Link
+              href={s.href}
+              data-slide={on ? "on" : undefined}
+              aria-current={on ? "page" : undefined}
+              className={`block py-3.5 text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${on ? "font-medium text-text" : "text-text-soft hover:text-text"}`}
+            >
+              {s.title}
+              <PendingReporter />
+            </Link>
+          );
           return (
             <li key={s.href} className="shrink-0">
-              <Link
-                href={s.href}
-                data-slide={on ? "on" : undefined}
-                aria-current={on ? "page" : undefined}
-                className={`block py-3.5 text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${on ? "font-medium text-text" : "text-text-soft hover:text-text"}`}
-              >
-                {s.title}
-                <PendingReporter />
-              </Link>
+              {views?.[s.href] ? (
+                <TabMenu label={s.title} views={views[s.href]}>
+                  {link}
+                </TabMenu>
+              ) : (
+                link
+              )}
             </li>
           );
         })}

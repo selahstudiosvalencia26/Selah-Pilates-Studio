@@ -1,5 +1,3 @@
-import Switch from "@/systems/booking/Switch";
-import { BOOKING_VIEWS } from "@/systems/booking/views";
 import { todayInZone } from "@/kit/time";
 import CalendarView from "@/systems/booking/CalendarView";
 import { readData } from "@/systems/booking/store";
@@ -13,9 +11,6 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const month = m && /^\d{4}-(0[1-9]|1[0-2])$/.test(m) ? m : today.slice(0, 7);
   return (
     <>
-      <div className="mb-4">
-        <Switch label="Bookings view" items={BOOKING_VIEWS} />
-      </div>
       <CalendarView month={month} today={today} settings={settings} bookings={bookings.filter((b) => b.deletedAt === null)} />
     </>
   );

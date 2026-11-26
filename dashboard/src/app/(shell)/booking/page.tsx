@@ -1,5 +1,3 @@
-import Switch from "@/systems/booking/Switch";
-import { BOOKING_VIEWS } from "@/systems/booking/views";
 import BookingList from "@/systems/booking/BookingList";
 import { findOccurrence, spotsLeft } from "@/systems/booking/rules";
 import { readData } from "@/systems/booking/store";
@@ -17,7 +15,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const heading = o ? `${o.title}, ${localParts(o.startsAt, settings.zone).date} at ${clockWords(localParts(o.startsAt, settings.zone).time)}: ${o.capacity - spotsLeft(live, o)} of ${o.capacity} slots booked.` : undefined;
   return (
     <>
-      <BookingList view={<Switch label="Bookings view" items={BOOKING_VIEWS} />} bookings={rows} zone={settings.zone} now={new Date().toISOString()} rule={{ depositRequired: settings.depositRequired, depositKind: settings.depositKind, depositAmount: settings.depositAmount, depositPercent: settings.depositPercent }} removedId={removed && /^[a-f0-9]{12}$/.test(removed) ? removed : undefined} heading={heading} />
+      <BookingList bookings={rows} zone={settings.zone} now={new Date().toISOString()} rule={{ depositRequired: settings.depositRequired, depositKind: settings.depositKind, depositAmount: settings.depositAmount, depositPercent: settings.depositPercent }} removedId={removed && /^[a-f0-9]{12}$/.test(removed) ? removed : undefined} heading={heading} />
     </>
   );
 }

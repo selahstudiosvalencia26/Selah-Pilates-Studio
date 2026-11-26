@@ -38,7 +38,7 @@ const FILTERS = [
   { id: "cancelled", label: "Cancelled" },
 ] as const;
 
-export default function BookingList({ view, bookings, zone, now, removedId, heading, rule }: { view?: React.ReactNode; bookings: Booking[]; zone: string; now: string; rule: DepositRule; removedId?: string; heading?: string }) {
+export default function BookingList({ bookings, zone, now, removedId, heading, rule }: { bookings: Booking[]; zone: string; now: string; rule: DepositRule; removedId?: string; heading?: string }) {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["id"]>("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -93,7 +93,6 @@ export default function BookingList({ view, bookings, zone, now, removedId, head
           <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-soft" />
           <input type="search" value={query} onChange={(e) => (setQuery(e.target.value), setPage(1))} placeholder="Search by name, phone or ID" aria-label="Search bookings by name, phone or ID" className={`${field} pl-9`} />
         </div>
-        {view}
         <Link href="/booking/new" className={primary}>
           Add booking
         </Link>
