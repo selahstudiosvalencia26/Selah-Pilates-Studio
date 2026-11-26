@@ -34,7 +34,7 @@ export default function SystemTabs({
     <nav
       ref={row}
       aria-label={`${name} sections`}
-      className="scroll-quiet -mx-4 mb-8 overflow-x-auto border-b border-border px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0"
+      className="scroll-quiet -mx-4 mb-5 overflow-x-auto border-b border-border px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0"
     >
       <ul ref={slide.ref} className="relative flex gap-6">
         <span

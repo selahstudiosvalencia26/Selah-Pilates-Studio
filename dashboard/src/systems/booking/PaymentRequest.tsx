@@ -18,10 +18,7 @@ export default function PaymentRequest({ message, accounts }: { message: string;
     );
   const withQr = accounts.filter((a) => a.qr);
   return (
-    <section aria-labelledby="ask-h" className={`${card} grid justify-items-start gap-3 p-4`}>
-      <h3 id="ask-h" className="text-base font-medium">
-        Send the payment details
-      </h3>
+    <div className="grid justify-items-start gap-3">
       <p className="max-w-2xl whitespace-pre-line text-sm">{message}</p>
       <CopyButton text={message} label="Copy message" />
       {withQr.length > 0 && (
@@ -37,6 +34,6 @@ export default function PaymentRequest({ message, accounts }: { message: string;
           ))}
         </ul>
       )}
-    </section>
+    </div>
   );
 }

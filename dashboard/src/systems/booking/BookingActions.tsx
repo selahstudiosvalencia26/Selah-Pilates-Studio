@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import Select from "@/kit/Select";
+import AskFirst from "./AskFirst";
 import { cancelAction, confirmAction, depositAction, finishAction, removeAction } from "./actions";
 import { METHODS, METHOD_NAMES, type Booking } from "./schema";
 import { btn, field, hintCls, labelCls, link, primary } from "./ui";
@@ -21,6 +22,7 @@ export default function BookingActions({ booking: b, depositDefault, today }: { 
   const [method, setMethod] = useState<string>(METHODS[0]);
   const [paidOn, setPaidOn] = useState(today);
   const [keep, setKeep] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   const run = (job: () => Promise<{ ok: boolean; message?: string }>, then?: () => void) =>
     start(async () => {
@@ -64,10 +66,19 @@ export default function BookingActions({ booking: b, depositDefault, today }: { 
             Cancel booking
           </button>
         )}
-        <button type="button" className={`${link} ml-auto`} disabled={pending} onClick={() => run(() => removeAction(b.id), () => router.push(`/booking?removed=${b.id}`))}>
+        <button type="button" className={`${link} ml-auto`} disabled={pending} onClick={() => setDeleting(true)}>
           Delete
         </button>
       </div>
+
+      <AskFirst
+        open={deleting}
+        title={`Delete ${b.customerName}'s booking?`}
+        text="It is removed from the list. You can undo it right after."
+        yes="Delete"
+        onYes={() => run(() => removeAction(b.id), () => router.push(`/booking?removed=${b.id}`))}
+        onClose={() => setDeleting(false)}
+      />
 
       {panel === "deposit" && (
         <form className="grid gap-4 rounded-xl border border-border p-4" onSubmit={(e) => (e.preventDefault(), run(() => depositAction(b.id, b.status, { amount, method, paidOn })))}>

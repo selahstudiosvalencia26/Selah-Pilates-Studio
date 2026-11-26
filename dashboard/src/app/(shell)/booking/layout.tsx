@@ -16,7 +16,7 @@ export default async function BookingLayout({ children }: { children: React.Reac
     <>
       <PageHeader title="Bookings" description={settings.mode === "classes" ? "Who is booked into your classes." : "Requests, dates and deposits for your venue."} />
       {found && sections.length > 1 && <SystemTabs name={found.name} sections={sections} />}
-      <div className="sm:pt-5">{children}</div>
+      <div>{children}</div>
     </>
   );
 }

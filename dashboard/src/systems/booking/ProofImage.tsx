@@ -11,7 +11,7 @@ export default function ProofImage({ src, who }: { src: string; who: string }) {
     <>
       <button type="button" onClick={() => setOpen(true)} className="justify-self-start rounded-lg focus-visible:outline-2 focus-visible:outline-accent">
         {/* eslint-disable-next-line @next/next/no-img-element -- a private picture, sent with the page */}
-        <img src={src} alt={alt} className="max-h-64 w-auto max-w-full cursor-zoom-in rounded-lg border border-border transition-transform duration-150 hover:scale-[1.02] motion-reduce:transition-none" />
+        <img src={src} alt={alt} className="max-h-44 w-auto max-w-full cursor-zoom-in rounded-lg border border-border transition-transform duration-150 hover:scale-[1.02] motion-reduce:transition-none" />
         <span className="mt-2 block text-xs text-text-soft">Press to see it bigger</span>
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title="Payment screenshot">

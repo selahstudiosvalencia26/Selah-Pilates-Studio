@@ -26,7 +26,7 @@ export default async function WebsiteLayout({
       {found && sections.length > 1 && (
         <SystemTabs name={found.name} sections={sections} />
       )}
-      <div className="sm:pt-5">
+      <div>
         {process.env.NODE_ENV === "production" && <PublishNote />}
         {children}
       </div>
