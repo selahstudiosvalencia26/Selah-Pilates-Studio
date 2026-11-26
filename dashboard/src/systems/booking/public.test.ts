@@ -33,7 +33,7 @@ afterEach(async () => {
 describe("the public request", () => {
   it("saves a request and says thanks without confirming anything", async () => {
     const a = await request(body(), caller(), NOW);
-    expect(a).toEqual({ status: 200, body: { ok: true, data: { message: "We got your request. We will reply soon." } } });
+    expect(a).toEqual({ status: 200, body: { ok: true, data: { message: "We got your request. We will reply soon.", ref: expect.stringMatching(/^[A-F0-9]{6}$/) } } });
     const [b] = (await readData()).bookings;
     expect([b.status, b.createdVia]).toEqual(["requested", "public"]);
   });
@@ -103,7 +103,7 @@ describe("what a visitor can see", () => {
   it("lists classes with their spots left, and no customer detail", async () => {
     await withData((data) => void (data.settings = { ...DEFAULT_SETTINGS, mode: "classes", timetable: [{ id: "abcd1234", weekday: "mon", time: "09:00", minutes: 55, title: "Sculpt", instructor: "Mara", place: "Studio A", capacity: 4 }] }));
     const booked = await request({ sessionKey: "abcd1234@2026-11-30", customerName: "Lia Reyes", phone: "0917 000 1111", email: "lia@example.com", spots: 1 }, caller(), NOW);
-    expect(booked.body).toEqual({ ok: true, data: { message: "You are booked. See you in class." } });
+    expect(booked.body).toEqual({ ok: true, data: { message: "You are booked. See you in class.", ref: expect.stringMatching(/^[A-F0-9]{6}$/) } });
     const a = await availability(new URLSearchParams("from=2026-11-23&days=14"), NOW);
     const classes = (a.body as { data: { classes: { key: string; spotsLeft: number }[] } }).data.classes;
     expect(classes.map((c) => [c.key, c.spotsLeft])).toEqual([["abcd1234@2026-11-30", 3]]); // this morning's class has started, so it is not offered

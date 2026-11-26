@@ -10,6 +10,8 @@ import {
 } from "react";
 import { Button, LinkButton } from "@/components/Button";
 import PayProof from "@/components/PayProof";
+import { BOOKING_RULES } from "@/content/rules";
+import Link from "next/link";
 import { bookingApi } from "@/content/booking";
 import { formatPhoneBox } from "@/lib/phone";
 
@@ -130,7 +132,8 @@ export function OnlineBooking({
   const form = useRef<HTMLFormElement>(null);
   const done = useRef<HTMLDivElement>(null);
   const [problem, setProblem] = useState("");
-  const [sent, setSent] = useState<{ slot: Slot; pay: Pay | null } | null>(
+  const [agreed, setAgreed] = useState(false);
+  const [sent, setSent] = useState<{ slot: Slot; pay: Pay | null; ref?: string } | null>(
     null,
   );
 
@@ -213,7 +216,7 @@ export function OnlineBooking({
     );
 
   if (sent) {
-    const { slot, pay } = sent;
+    const { slot, pay, ref } = sent;
     const when = `${slot.title}, ${longDay(slot.startsAt)} at ${clock(slot.startsAt)}`;
     const due = pay?.payBy
       ? fmt(
@@ -233,6 +236,11 @@ export function OnlineBooking({
             ? `Pay ${peso(pay.amount)} to keep your slot.`
             : "You are booked. See you in class."}
         </p>
+        {ref && (
+          <p className="mt-3 text-lg">
+            Booking ID <span className="font-medium tracking-[0.12em]">{ref}</span>
+          </p>
+        )}
         <p className="mt-3 text-muted">
           {when}.
           {pay &&
@@ -366,7 +374,7 @@ export function OnlineBooking({
       const r = await fetch(`${bookingApi}/api/booking/request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...v, spots, sessionKey: slot.key }),
+        body: JSON.stringify({ ...v, spots, sessionKey: slot.key, agreed }),
       });
       const j = await r.json();
       if (j.ok) {
@@ -375,7 +383,8 @@ export function OnlineBooking({
             ? { customerName: v.customerName, phone: v.phone, email: v.email }
             : null,
         );
-        setSent({ slot, pay: j.data?.pay ?? null });
+        setSent({ slot, pay: j.data?.pay ?? null, ref: j.data?.ref });
+        setAgreed(false);
         load();
       } else {
         setProblem(j.message);
@@ -546,7 +555,7 @@ export function OnlineBooking({
 
       {ask > 0 && (
         <p className="text-base">
-          {peso(ask)} {deposit?.percent === 100 ? "to pay" : "deposit"}. You will see how to pay next
+          Pay {peso(ask)} {price !== null && ask < price ? `now and ${peso(price - ask)} at the studio` : "to keep your slot"}. You will see how to pay next
           {deposit?.hours ? `, within ${deposit.hours} hours` : ""}.
         </p>
       )}
@@ -563,6 +572,25 @@ export function OnlineBooking({
         </label>
       )}
 
+      <div className="rounded-3xl bg-page p-6">
+        <p className="font-serif text-2xl">Before you book</p>
+        <ul className="mt-3 grid list-disc gap-2 pl-5 text-base text-muted">
+          {BOOKING_RULES.map((rule) => (
+            <li key={rule}>{rule}</li>
+          ))}
+        </ul>
+        <label className="mt-4 flex min-h-11 items-start gap-3 text-base">
+          <input type="checkbox" required checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 size-5 shrink-0 accent-ink" />
+          <span>
+            I agree to these rules and the{" "}
+            <Link href="/privacy" target="_blank" className="underline underline-offset-4">
+              privacy notice
+            </Link>
+            .
+          </span>
+        </label>
+      </div>
+
       <p role="alert" className="text-base text-red-800 empty:hidden">
         {problem}
       </p>
@@ -574,7 +602,7 @@ export function OnlineBooking({
       >
         {busy
           ? "Booking"
-          : `Confirm booking${price !== null ? ` · ${peso(price)}` : ""}`}
+          : "Confirm booking"}
       </Button>
     </form>
   );

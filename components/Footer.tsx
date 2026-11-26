@@ -126,6 +126,9 @@ export function Footer() {
             <p>
               © {site.name} {new Date().getFullYear()}
             </p>
+            <Link href="/privacy" className={small}>
+              Privacy and booking rules
+            </Link>
             <BackToTop />
           </div>
         </div>

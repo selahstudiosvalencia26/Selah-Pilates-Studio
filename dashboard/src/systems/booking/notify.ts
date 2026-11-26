@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import { isEmailOn, readEmailSettings } from "@/kit/emailSettings";
 import { mailReady, ownDomain, sendMail, studioAddress } from "@/kit/mailer";
+import { bookingRef } from "./ref";
 import { formatAccountNumber } from "./accountNumber";
 import { payLabel } from "./schema";
 import { peso } from "./pricing";
@@ -21,7 +22,7 @@ export function alertWords(what: What, b: Booking, zone: string, link: string): 
       : [`${who} sent a payment screenshot for ${slot}.`, `Check the money arrived, then press Payment received.`];
   return {
     subject: what === "booked" ? `New booking: ${who}, ${slot}` : `Receipt received: ${who}, ${slot}`,
-    text: [...lines, ...(link ? ["", `Open it: ${link}/booking/${b.id}`] : [])].join("\n"),
+    text: [`Booking ID: ${bookingRef(b.id)}`, ...lines, ...(link ? ["", `Open it: ${link}/booking/${b.id}`] : [])].join("\n"),
   };
 }
 
@@ -66,7 +67,7 @@ export function customerWords(what: ForCustomer, b: Booking, settings: Pick<Sett
     cancelled: [`Your booking was cancelled: ${slot}.`, "If this is a surprise, please message us."],
   }[what];
   const subject = { received: owes ? `Pay to keep your slot: ${slot}` : `You are booked: ${slot}`, confirmed: `Confirmed: ${slot}`, cancelled: `Cancelled: ${slot}` }[what];
-  return { subject, text: [...lines, "", studio].join("\n") };
+  return { subject, text: [...lines, "", `Booking ID: ${bookingRef(b.id)}`, studio].join("\n") };
 }
 
 /** Email the customer about their booking, if they gave an email and the studio can send to it. Never gets in the way. */

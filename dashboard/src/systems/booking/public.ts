@@ -3,12 +3,13 @@ import { createLimiter, waitWords } from "@/kit/rateLimit";
 import { todayInZone } from "@/kit/time";
 import { alertStudio, tellCustomer } from "./notify";
 import { proofCode } from "./proof";
+import { bookingRef } from "./ref";
 import { addBooking, bookClass } from "./service";
 import { formatAccountNumber } from "./accountNumber";
 import { payLabel } from "./schema";
 import { asTaken, freeWindows, isPendingHold, occurrencesOn, partOn, spotsLeft, startTimes } from "./rules";
 import { fieldsSchema, requestSchema, type Booking, type Settings } from "./schema";
-import { readData } from "./store";
+import { readData, withData } from "./store";
 import { addDays } from "./time";
 import { z } from "zod";
 
@@ -89,11 +90,18 @@ const classRequest = z.strictObject({
   spots: z.number().int().min(1, "Choose how many slots.").max(20, "Book up to 20 slots at a time."),
   notes: z.string().trim().max(500).default(""),
   website: z.string().max(200).optional(),
+  agreed: z.boolean().optional(), // ticked the booking and refund rules on the website
 });
 
 // Counts per caller and per phone number, so a bot cannot flood the staff list. In memory for now (see kit/rateLimit).
 const byCaller = createLimiter({ max: 8, windowMs: 60 * 60_000 });
 const byPhone = createLimiter({ max: 4, windowMs: 60 * 60_000 });
+
+// Kept in the booking's history, so there is a record if a refund is ever discussed.
+const noteAgreed = (id: string, now: Date) =>
+  withData((data) => {
+    data.bookings.find((b) => b.id === id)?.history.push({ at: now.toISOString(), what: "Agreed to the booking and refund rules" });
+  });
 
 const THANKS = { venue: "We got your request. We will reply soon.", classes: "You are booked. See you in class." };
 
@@ -124,13 +132,14 @@ export async function request(body: unknown, caller: string, now: Date = new Dat
     if (made) {
       alertStudio("booked", made, data.settings.zone);
       tellCustomer("received", made.id);
+      if ("agreed" in input && input.agreed) await noteAgreed(made.id, now);
     }
     // Waiting for a deposit: the customer is shown how to pay. (A venue can instead ask only after staff confirm.)
     if ((settings.mode === "classes" || data.settings.depositWhen === "request") && made?.deposit === "waiting") {
       const accounts = data.settings.payAccounts.map((a) => ({ label: payLabel(a), name: a.name, number: formatAccountNumber(a.kind, a.number), qr: a.qr }));
-      return good({ message: settings.mode === "classes" ? "Your slot is on hold. Pay the deposit to keep it." : THANKS[settings.mode], pay: { amount: made.depositAmount, payBy: made.payBy ?? null, accounts, id, code: proofCode(id) } });
+      return good({ message: settings.mode === "classes" ? "Your slot is on hold. Pay the deposit to keep it." : THANKS[settings.mode], pay: { amount: made.depositAmount, payBy: made.payBy ?? null, accounts, id, code: proofCode(id) }, ref: bookingRef(id) });
     }
-    return good({ message: THANKS[settings.mode] });
+    return good({ message: THANKS[settings.mode], ref: bookingRef(id) });
   } catch (e) {
     if (e instanceof AppError) return bad(400, e.message);
     console.error("booking request failed");
