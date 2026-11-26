@@ -2,7 +2,7 @@
 // the home page opens. The practice pages made for building are never open. Checked in the middleware, which runs for every page
 // change.
 
-const PRACTICE_ONLY = ["/preview/components", "/preview/slow", "/preview/people/roles"];
+const PRACTICE_ONLY = ["/preview/components", "/preview/slow"];
 const under = (path: string, base: string) => path === base || path.startsWith(`${base}/`);
 
 export const databaseReady = (): boolean => Boolean((process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim());

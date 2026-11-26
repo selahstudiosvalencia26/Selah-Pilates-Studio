@@ -153,7 +153,7 @@ export default function RoleEditor({ systems, installHref }: { systems: Manifest
             Reset to the usual
           </button>
         )}
-        <p className="text-[13px] text-text-soft">Changes apply when saved and are written to the activity log. Saving turns on when the database is connected.</p>
+        <p className="text-[13px] text-text-soft">{process.env.NODE_ENV === "production" ? "Choices here are not saved yet." : "Changes apply when saved and are written to the activity log. Saving turns on when the database is connected."}</p>
       </div>
       )}
     </div>

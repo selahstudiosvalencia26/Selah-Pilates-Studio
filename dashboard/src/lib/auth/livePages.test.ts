@@ -8,9 +8,9 @@ describe("pages open on the live site", () => {
     expect(openOnLive("/content", false)).toBe(false);
   });
   it("opens everything once it is, except the practice pages", () => {
-    for (const path of ["/booking", "/content/about", "/preview/people", "/preview/settings/menu", "/preview/systems", "/preview/account"]) {
+    for (const path of ["/booking", "/content/about", "/preview/people", "/preview/people/roles", "/preview/settings/menu", "/preview/systems", "/preview/account"]) {
       expect(openOnLive(path, true)).toBe(true);
     }
-    for (const path of ["/preview/components", "/preview/slow", "/preview/people/roles"]) expect(openOnLive(path, true)).toBe(false);
+    for (const path of ["/preview/components", "/preview/slow"]) expect(openOnLive(path, true)).toBe(false);
   });
 });

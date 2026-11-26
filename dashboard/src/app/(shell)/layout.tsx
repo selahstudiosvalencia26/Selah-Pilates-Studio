@@ -51,9 +51,7 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   const owner = permissionsOf([[EVERYTHING]]);
   const order = await getMenuOrder();
   const systemsPage = await isOwner(); // the Systems page is in the menu for the owner only
-  // Live, People is a plain list of who can sign in, so it has no Roles tab there.
-  const people = process.env.NODE_ENV === "production" ? { ...PEOPLE_PAGE, children: undefined } : PEOPLE_PAGE;
-  const items = [TODAY, ...applyOrder(buildMenu(systems, owner), order), people, SETTINGS_PAGE, ...(systemsPage ? [SYSTEMS_PAGE] : [])];
+  const items = [TODAY, ...applyOrder(buildMenu(systems, owner), order), PEOPLE_PAGE, SETTINGS_PAGE, ...(systemsPage ? [SYSTEMS_PAGE] : [])];
 
   return (
     <Shell business={brand.name} logoUrl={brand.logoUrl} person={{ name: signedIn?.email ?? "Sample Owner", role: "Owner", avatarUrl }} items={items}>
