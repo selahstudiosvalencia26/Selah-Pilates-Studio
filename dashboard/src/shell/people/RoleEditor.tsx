@@ -22,12 +22,16 @@ export default function RoleEditor({ systems, saved, installHref }: { systems: M
   const [message, setMessage] = useState<SaveMessage>(null);
   const [pending, startSaving] = useTransition();
   const dirty = JSON.stringify(roles) !== kept;
-  const save = () =>
+  const persist = (list: Role[]) =>
     startSaving(async () => {
-      const r = await saveRoles(roles);
-      if (r.ok) setKept(JSON.stringify(roles));
+      const r = await saveRoles(list);
+      if (r.ok) {
+        setKept(JSON.stringify(list));
+        setDeleted(null);
+      }
       setMessage(r.ok ? { text: "Saved." } : { text: r.message, bad: true });
     });
+  const save = () => persist(roles);
   const [current, setCurrent] = useState("staff");
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
@@ -37,13 +41,29 @@ export default function RoleEditor({ systems, saved, installHref }: { systems: M
   const update = (next: Role) => setRoles((all) => all.map((r) => (r.id === next.id ? next : r)));
   const reset = () => update(start.find((r) => r.id === role.id) ?? role);
 
+  // A role you made can be deleted. Nothing changes for anyone until Save, and Undo puts it back.
+  const [deleted, setDeleted] = useState<{ role: Role; at: number } | null>(null);
+  const remove = () => {
+    setDeleted({ role, at: roles.indexOf(role) });
+    setRoles((all) => all.filter((r) => r.id !== role.id));
+    setCurrent("staff");
+  };
+  const undo = () => {
+    if (!deleted) return;
+    setRoles((all) => [...all.slice(0, deleted.at), deleted.role, ...all.slice(deleted.at)]);
+    setCurrent(deleted.role.id);
+    setDeleted(null);
+  };
+
   const clean = name.trim().replace(/\s+/g, " ");
   const clash = roles.some((r) => r.name.toLowerCase() === clean.toLowerCase());
   const addRole = () => {
     if (!clean || clash || roles.length >= 20) return;
     const id = `custom-${Date.now()}`;
     const staff = roles.find((r) => r.id === "staff");
-    setRoles((all) => [...all, { id, name: clean, builtin: false, locked: false, permissions: [...(staff?.permissions ?? [])] }]);
+    const next = [...roles, { id, name: clean, builtin: false, locked: false, permissions: [...(staff?.permissions ?? [])] }];
+    setRoles(next);
+    persist(next); // saved at once, so it can be given to someone straight away
     setCurrent(id);
     setName("");
     setAdding(false);
@@ -89,6 +109,15 @@ export default function RoleEditor({ systems, saved, installHref }: { systems: M
           </button>
         )}
       </div>
+
+      {deleted && (
+        <p role="status" className="card flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+          <span>{deleted.role.name} is deleted when you save. Anyone with only this role will lose access until you give them another.</span>
+          <button type="button" onClick={undo} className={buttonClass()}>
+            Undo
+          </button>
+        </p>
+      )}
 
       <p className="max-w-2xl text-sm text-text-soft">
         {role.locked ? "The Owner can do everything, and this cannot be changed." : `Choose what ${role.name} can do in each part of the dashboard.`}
@@ -158,6 +187,14 @@ export default function RoleEditor({ systems, saved, installHref }: { systems: M
         </ul>
       )}
 
+      {!role.builtin && (
+        <div>
+          <button type="button" onClick={remove} className={buttonClass()}>
+            <Icon name="trash" className="h-4 w-4" />
+            Delete {role.name}
+          </button>
+        </div>
+      )}
       {systems.length > 0 && role.builtin && !role.locked && (
         <div>
           <button type="button" onClick={reset} className={buttonClass("quiet")}>

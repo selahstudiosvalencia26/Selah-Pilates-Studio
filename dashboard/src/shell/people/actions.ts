@@ -107,6 +107,9 @@ export async function saveRoles(input: unknown): Promise<Result> {
   if (!parsed.success) return err("Reload the page and try again.");
   return done(async () => {
     await writeTeamDoc("roles", parsed.data);
-    await saveMembers(await readMembers(), await readRoles());
+    // A deleted role is also taken off the people who had it.
+    const kept = await readRoles();
+    const known = new Set(kept.map((r) => r.id));
+    await saveMembers((await readMembers()).map((m) => ({ ...m, roles: m.roles.filter((id) => known.has(id)) })), kept);
   });
 }
