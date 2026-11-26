@@ -166,7 +166,7 @@ export default function Team({ owners, members, roles, business }: { owners: str
                 <button type="button" disabled={pending} onClick={() => reset(m)} className={buttonClass()}>
                   New password
                 </button>
-                <button type="button" disabled={pending} onClick={() => run(() => removePerson(m.email), () => setRemoved(m))} className={buttonClass("quiet")}>
+                <button type="button" disabled={pending} onClick={() => run(() => removePerson(m.email), () => setRemoved(m))} className={buttonClass("danger")}>
                   <Icon name="trash" className="h-4 w-4" />
                   Remove
                 </button>

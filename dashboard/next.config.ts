@@ -12,7 +12,7 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${supabase ? ` ${supabase}` : ""}`,
+  `img-src 'self' data: blob: https://tile.openstreetmap.org${supabase ? ` ${supabase}` : ""}`,
   "font-src 'self'",
   `connect-src 'self'${supabase ? ` ${supabase}` : ""}${dev ? " ws: wss:" : ""}`,
   "object-src 'none'",

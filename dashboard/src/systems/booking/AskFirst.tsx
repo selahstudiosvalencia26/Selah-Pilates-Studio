@@ -1,7 +1,8 @@
 "use client";
 
 import Dialog from "@/kit/Dialog";
-import { btn, primary } from "./ui";
+import { buttonClass } from "@/kit/Button";
+import { btn } from "./ui";
 
 // A window that says what is about to happen, before deleting or cancelling (asked for by the studio).
 export default function AskFirst({ open, title, text, yes, onYes, onClose }: { open: boolean; title: string; text: string; yes: string; onYes: () => void; onClose: () => void }) {
@@ -15,7 +16,7 @@ export default function AskFirst({ open, title, text, yes, onYes, onClose }: { o
           <button type="button" className={btn} onClick={onClose}>
             Keep it
           </button>
-          <button type="button" className={primary} onClick={() => (onClose(), onYes())}>
+          <button type="button" className={buttonClass("danger")} onClick={() => (onClose(), onYes())}>
             {yes}
           </button>
         </>

@@ -127,7 +127,7 @@ export default function RoleEditor({ systems, saved, installHref }: { systems: M
           {role.locked ? "The Owner can do everything, and this cannot be changed." : `Choose what ${role.name} can do in each part of the dashboard.`}
         </p>
         {!role.builtin ? (
-          <button type="button" onClick={remove} className={buttonClass()}>
+          <button type="button" onClick={remove} className={buttonClass("danger")}>
             <Icon name="trash" className="h-4 w-4" />
             Delete {role.name}
           </button>

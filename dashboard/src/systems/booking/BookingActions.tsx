@@ -66,7 +66,7 @@ export default function BookingActions({ booking: b, depositDefault, today }: { 
             Cancel booking
           </button>
         )}
-        <button type="button" className={`${link} ml-auto`} disabled={pending} onClick={() => setDeleting(true)}>
+        <button type="button" className={`${link} ml-auto !text-danger`} disabled={pending} onClick={() => setDeleting(true)}>
           Delete
         </button>
       </div>

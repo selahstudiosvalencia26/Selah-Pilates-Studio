@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { buttonClass } from "@/kit/Button";
 import AskFirst from "./AskFirst";
 import { bulkAction, type BulkKind } from "./bulk";
 import type { Booking } from "./schema";
@@ -69,7 +70,7 @@ export default function BulkBar({ picked, onClear }: { picked: Booking[]; onClea
               Cancel
             </button>
           )}
-          <button type="button" className={btn} disabled={pending} onClick={() => setAsking("delete")}>
+          <button type="button" className={buttonClass("danger")} disabled={pending} onClick={() => setAsking("delete")}>
             Delete
           </button>
           <button type="button" className={`${link} ml-auto`} onClick={onClear}>

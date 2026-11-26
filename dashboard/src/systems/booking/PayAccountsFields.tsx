@@ -44,7 +44,7 @@ function Account({ account: a, change, remove }: { account: PayAccount; change: 
     <li className="rounded-2xl border border-border bg-card transition-opacity duration-200 starting:opacity-0 motion-reduce:transition-none">
       <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
         <h3 className="min-w-0 truncate text-sm font-semibold">{title}</h3>
-        <button type="button" className="inline-flex min-h-11 shrink-0 flex-row items-center gap-1.5 whitespace-nowrap rounded-lg px-2 text-sm text-text-soft transition-colors hover:bg-hover hover:text-danger focus-visible:outline-2 focus-visible:outline-accent" onClick={remove} aria-label={`Remove ${title}`}>
+        <button type="button" className="inline-flex min-h-11 shrink-0 flex-row items-center gap-1.5 whitespace-nowrap rounded-lg px-2 text-sm text-danger transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-accent" onClick={remove} aria-label={`Remove ${title}`}>
           <Icon name="trash" className="h-4 w-4" />
           Remove
         </button>

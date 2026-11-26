@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import SaveBar from "@/kit/SaveBar";
 import { saveSite } from "./actions";
+import MapPicker from "./MapPicker";
 import { siteSchema, type SiteData } from "./schema";
 import { field, hintCls, labelCls } from "./ui";
 
@@ -50,13 +51,12 @@ const GROUPS: { title: string; note: string; rows: Row[] }[] = [
       {
         key: "latitude",
         label: "Latitude",
-        hint: "Right-click the studio on Google Maps and copy the first number.",
+        hint: "Filled in by the map. You can also type it.",
         inputMode: "decimal",
       },
       {
         key: "longitude",
         label: "Longitude",
-        hint: "The second number.",
         inputMode: "decimal",
       },
     ],
@@ -142,6 +142,17 @@ export default function SiteForm({ initial }: { initial: SiteData }) {
             </p>
           </div>
           <div className="grid min-w-0 content-start gap-5">
+            {g.title === "Map pin" && (
+              <MapPicker
+                latitude={Number(values.latitude || NaN)}
+                longitude={Number(values.longitude || NaN)}
+                onPick={(latitude, longitude) => {
+                  setValues((v) => ({ ...v, latitude: String(latitude), longitude: String(longitude) }));
+                  setSaved(false);
+                  setDirty(true);
+                }}
+              />
+            )}
             {g.rows.map((r) => (
               <div key={r.key}>
                 <label htmlFor={`site-${r.key}`} className={labelCls}>

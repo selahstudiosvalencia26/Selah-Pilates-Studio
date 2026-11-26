@@ -2,9 +2,7 @@
 
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
-import { bookHref } from "@/content/booking";
 import type { Instructor } from "@/content/instructors";
 
 // One slow, soft movement shared by every part of the card.
@@ -106,15 +104,6 @@ export function InstructorStack({
                       {current.bio}
                     </p>
                   )}
-                  <div className={`pt-4 ${rise} delay-150`}>
-                    <Link
-                      href={bookHref}
-                      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-page px-5 text-base text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-page"
-                    >
-                      Book a session
-                      <ArrowRight aria-hidden="true" size={16} />
-                    </Link>
-                  </div>
                 </div>
               </div>
             </div>
