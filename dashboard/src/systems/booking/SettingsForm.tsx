@@ -12,6 +12,7 @@ import { settingsSchema, type Settings } from "./schema";
 import { btn, card, field, hintCls, labelCls, link } from "./ui";
 import PayAccountsFields from "./PayAccountsFields";
 import PricingFields from "./PricingFields";
+import DepositChoice from "./DepositChoice";
 
 // Settings: only what this kind of booking needs. The kind itself (a venue or classes) was chosen when the system was installed and is
 // final here (`mdash install booking`), so it is not offered. A venue has opening hours, a lead time and a deposit. A class studio has
@@ -54,8 +55,6 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
     </div>
   );
 
-  const fullPrice = !venue && s.depositKind === "percent" && s.depositPercent === 100;
-
   const depositSection = (
           <section className="grid gap-3" aria-labelledby="dep-h">
             <h2 id="dep-h" className="text-base font-medium">
@@ -71,28 +70,11 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
                 <Select id="s-when" label="When do customers see how to pay?" value={s.depositWhen} onChange={(x) => edit({ depositWhen: x as Settings["depositWhen"] })} options={[{ value: "request", label: "As soon as they send a request" }, { value: "confirm", label: "After I confirm the request" }]} />
               </div>
             )}
-            {!venue && s.depositRequired && (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="s-kind" className={labelCls}>
-                    Ask for
-                  </label>
-                  <Select id="s-kind" label="Ask for" value={fullPrice ? "full" : s.depositKind} onChange={(x) => edit(x === "full" ? { depositKind: "percent", depositPercent: 100 } : x === "percent" ? { depositKind: "percent", depositPercent: fullPrice ? 50 : s.depositPercent } : { depositKind: "fixed" })} options={[{ value: "full", label: "The full class price" }, { value: "percent", label: "A percentage of the class price" }, { value: "fixed", label: "The same amount every booking" }]} />
-                  {fullPrice && <p className="mt-1.5 text-sm text-text-soft">Customers pay the price of the class they book, times the number of people.</p>}
-                </div>
-                {s.depositKind === "percent" && !fullPrice && (
-                  <div>
-                    <label htmlFor="s-percent" className={labelCls}>
-                      Percentage (%)
-                    </label>
-                    <input id="s-percent" type="number" inputMode="numeric" min={1} max={100} className={field} value={s.depositPercent} onChange={(e) => edit({ depositPercent: Number(e.target.value) })} />
-                  </div>
-                )}
-              </div>
-            )}
+            {!venue && s.depositRequired && <DepositChoice value={s} prices={s.timetable.flatMap((c) => (c.price ? [c.price] : []))} onChange={edit} />}
             {s.depositRequired && (
               <div className="grid gap-3 sm:grid-cols-2">
-                {!fullPrice && (
+                {/* A class studio types an amount only for "Fixed amount"; percentages follow the class price. */}
+                {(venue || s.depositKind === "fixed") && (
                 <div>
                 <label htmlFor="s-deposit" className={labelCls}>
                   {s.depositKind === "percent" && (!venue || s.priceType !== "none") ? "Fixed amount, for bookings with no price (₱)" : "Deposit amount (₱)"}
