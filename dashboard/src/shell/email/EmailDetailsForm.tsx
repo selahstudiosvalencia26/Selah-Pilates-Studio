@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { buttonClass } from "@/kit/Button";
 import Icon from "@/kit/Icon";
 import type { EmailDetails } from "@/kit/emailSettings";
 import { Field, Input } from "@/kit/Input";
 import SaveBar, { type SaveMessage } from "@/kit/SaveBar";
-import { saveEmailDetails } from "./actions";
+import { saveEmailDetails, sendTestEmail } from "./actions";
 
 // Set up once, used by every system's emails. One studio email gets both customer replies and booking alerts, so there is one box for
-// it and nothing to decide. Beside it, an example shows where each thing ends up.
-export default function EmailDetailsForm({ initial, suggestion }: { initial: EmailDetails; suggestion?: string }) {
+// it and nothing to decide. Beside it, an example of the alert the studio gets, and a real test.
+export default function EmailDetailsForm({ initial, suggestion, ready }: { initial: EmailDetails; suggestion?: string; ready: boolean }) {
   const [v, setV] = useState(initial);
   const [saved, setSaved] = useState(initial);
   const [message, setMessage] = useState<SaveMessage>(null);
@@ -19,6 +20,12 @@ export default function EmailDetailsForm({ initial, suggestion }: { initial: Ema
   const set = (patch: Partial<EmailDetails>) => (setV({ ...v, ...patch }), setMessage(null));
   const name = v.senderName.trim() || "Your studio";
   const mine = v.replyTo.trim();
+
+  const test = () =>
+    start(async () => {
+      const r = await sendTestEmail();
+      setMessage(r.ok ? { text: `Sent to ${r.data.to}. Check the inbox and spam.` } : { text: r.message, bad: true });
+    });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,15 +42,16 @@ export default function EmailDetailsForm({ initial, suggestion }: { initial: Ema
   return (
     <form onSubmit={submit} noValidate aria-label="Email settings" className="flex grow flex-col pt-5">
       <p role="note" className="card mb-6 flex items-start gap-3 p-4 text-sm">
-        <Icon name="warning" weight="medium" className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+        <Icon name={ready ? "check" : "warning"} weight="medium" className={`mt-0.5 h-4 w-4 shrink-0 ${ready ? "text-success" : "text-warning"}`} />
         <span>
-          <span className="font-semibold">Emails are not being sent yet.</span> <span className="text-text-soft">You can fill this in now, so it is ready.</span>
+          <span className="font-semibold">{ready ? "Booking alerts are on." : "Email is not connected yet."}</span>{" "}
+          <span className="text-text-soft">{ready ? "You get an email for each new booking and receipt. Customers are not emailed yet." : "You can fill this in now, so it is ready."}</span>
         </span>
       </p>
 
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <div className="card grid gap-6 p-5 sm:p-6">
-          <Field label="Your studio email" hint="Customer replies and new booking alerts come here.">
+          <Field label="Your studio email" hint="New booking and receipt alerts come here.">
             {(p) => <Input {...p} type="email" autoComplete="email" placeholder="you@yourstudio.com" value={v.replyTo} onChange={(e) => set({ replyTo: e.target.value })} />}
           </Field>
           {suggestion && !mine && (
@@ -60,12 +68,6 @@ export default function EmailDetailsForm({ initial, suggestion }: { initial: Ema
         <section aria-label="Example" className="grid gap-3">
           <p className="text-sm font-medium">What happens when someone books</p>
           <div className="card grid gap-1 p-5">
-            <p className="text-xs text-text-soft">Your customer gets</p>
-            <p className="break-words text-sm font-semibold">{name}</p>
-            <p className="text-sm">Your class is booked</p>
-            <p className="break-all text-xs text-text-soft">Replying goes to {mine || "your studio email"}</p>
-          </div>
-          <div className="card grid gap-1 p-5">
             <p className="break-all text-xs text-text-soft">You get, at {mine || "your studio email"}</p>
             <p className="text-sm font-semibold">New booking request</p>
             <p className="text-sm">Maria, Sculpt, Monday 9:00 AM</p>
@@ -73,7 +75,13 @@ export default function EmailDetailsForm({ initial, suggestion }: { initial: Ema
         </section>
       </div>
 
-      <SaveBar dirty={dirty} pending={pending} message={message} />
+      <SaveBar dirty={dirty} pending={pending} message={message}>
+        {ready && (
+          <button type="button" className={buttonClass()} disabled={pending || dirty} onClick={test}>
+            Send test email
+          </button>
+        )}
+      </SaveBar>
     </form>
   );
 }

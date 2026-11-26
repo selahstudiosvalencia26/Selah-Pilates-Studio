@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { databaseOn, readDocument, writeDocument } from "@/kit/database";
 import { createLimiter, waitWords } from "@/kit/rateLimit";
+import { alertStudio } from "./notify";
 import { dataDir, withData } from "./store";
 
 // The payment screenshot a customer attaches after paying. It can show names and numbers, so it is private: kept with the secret
@@ -66,9 +67,12 @@ export async function attachProof(body: unknown, now: Date = new Date()): Promis
   const waiting = await withData((data) => data.bookings.some((b) => b.id === id && b.deletedAt === null && b.deposit === "waiting"));
   if (!waiting) return answer(409, "This booking is not waiting for a payment.");
   await keep(id, { image, at: now.toISOString() });
-  await withData((data) => {
+  const first = await withData((data) => {
     const b = data.bookings.find((x) => x.id === id);
-    if (b && !b.history.some((h) => h.what === PROOF_SENT)) b.history.push({ at: now.toISOString(), what: PROOF_SENT });
+    if (!b || b.history.some((h) => h.what === PROOF_SENT)) return null;
+    b.history.push({ at: now.toISOString(), what: PROOF_SENT });
+    return { booking: structuredClone(b), zone: data.settings.zone };
   });
+  if (first) alertStudio("receipt", first.booking, first.zone); // once for each booking, however often it is sent again
   return answer(200, "We got your screenshot. We will confirm your slot soon.");
 }
