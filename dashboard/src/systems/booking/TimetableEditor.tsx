@@ -171,32 +171,34 @@ export default function TimetableEditor({ initial, classes = [] }: { initial: Cl
         )}
       </p>
 
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7">
+      <div className="@container">
+      <ul className="grid gap-3 @3xl:grid-cols-7 @3xl:gap-2">
         {ORDER.map((d) => {
           const day = rows.filter((r) => r.weekday === d);
           return (
-            <li key={d} className="flex flex-col gap-2 rounded-xl border border-border p-3">
-              <h3 className="text-sm font-medium">{DAY_NAMES[d]}</h3>
+            <li key={d} className="flex min-w-0 flex-wrap items-center gap-2 rounded-xl border border-border p-3 @3xl:flex-col @3xl:flex-nowrap @3xl:items-stretch @3xl:p-2">
+              <h3 className="w-full text-sm font-medium @xl:w-24 @3xl:w-full @3xl:truncate @3xl:px-1">{DAY_NAMES[d]}</h3>
               {day.map((r) => (
                 <button
                   key={r.id}
                   type="button"
                   aria-label={`Change ${r.title}, ${DAY_NAMES[d]} ${clockWords(r.time)}`}
                   onClick={() => open({ id: r.id, weekday: r.weekday, time: r.time, title: r.title, spots: String(r.capacity) })}
-                  className={`grid rounded-lg border p-3 text-left transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-accent ${draft?.id === r.id ? "border-accent" : "border-border bg-card"}`}
+                  className={`grid min-w-0 rounded-lg border p-3 text-left @3xl:p-2 transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-accent ${draft?.id === r.id ? "border-accent" : "border-border bg-card"}`}
                 >
                   <span className="text-sm font-medium">{clockWords(r.time)}</span>
                   <span className="truncate text-sm">{r.title}</span>
                   <span className="text-xs text-text-soft">{r.capacity === 1 ? "1 slot" : `${r.capacity} slots`}</span>
                 </button>
               ))}
-              <button type="button" className={`${btn} mt-auto`} aria-label={`Add a class on ${DAY_NAMES[d]}`} onClick={() => open({ id: null, weekday: d, time: "09:00", title: "", spots: "12" })}>
+              <button type="button" className={`${btn} ml-auto justify-center @3xl:ml-0 @3xl:mt-auto`} aria-label={`Add a class on ${DAY_NAMES[d]}`} onClick={() => open({ id: null, weekday: d, time: "09:00", title: "", spots: "12" })}>
                 Add
               </button>
             </li>
           );
         })}
       </ul>
+      </div>
     </div>
   );
 }
