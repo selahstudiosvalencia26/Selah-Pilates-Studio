@@ -5,23 +5,20 @@ import Icon from "@/kit/Icon";
 import type { EmailDetails } from "@/kit/emailSettings";
 import { Field, Input } from "@/kit/Input";
 import SaveBar, { type SaveMessage } from "@/kit/SaveBar";
-import Toggle from "@/kit/Toggle";
 import { saveEmailDetails } from "./actions";
 
-// Set up once, used by every system's emails. Most studios have one email address, so one box covers both replies and alerts; a
-// switch opens a second box for the rest. Beside it, an example shows where each thing ends up.
+// Set up once, used by every system's emails. One studio email gets both customer replies and booking alerts, so there is one box for
+// it and nothing to decide. Beside it, an example shows where each thing ends up.
 export default function EmailDetailsForm({ initial, suggestion }: { initial: EmailDetails; suggestion?: string }) {
   const [v, setV] = useState(initial);
-  const [apart, setApart] = useState(initial.staffTo !== initial.replyTo);
   const [saved, setSaved] = useState(initial);
   const [message, setMessage] = useState<SaveMessage>(null);
   const [pending, start] = useTransition();
-  const next: EmailDetails = { ...v, staffTo: apart ? v.staffTo : v.replyTo };
+  const next: EmailDetails = { ...v, staffTo: v.replyTo };
   const dirty = JSON.stringify(next) !== JSON.stringify(saved);
   const set = (patch: Partial<EmailDetails>) => (setV({ ...v, ...patch }), setMessage(null));
   const name = v.senderName.trim() || "Your studio";
   const mine = v.replyTo.trim();
-  const alerts = next.staffTo.trim();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,19 +52,6 @@ export default function EmailDetailsForm({ initial, suggestion }: { initial: Ema
               <span className="break-all">Use {suggestion}</span>
             </button>
           )}
-          <Toggle
-            checked={apart}
-            onChange={(on) => {
-              setApart(on);
-              set(on ? { staffTo: v.staffTo || v.replyTo } : {});
-            }}
-            label="Send booking alerts to a different email"
-          />
-          {apart && (
-            <div className="transition-[opacity,translate] duration-200 ease-out starting:-translate-y-1 starting:opacity-0 motion-reduce:transition-none">
-              <Field label="Booking alerts go to">{(p) => <Input {...p} type="email" placeholder="frontdesk@yourstudio.com" value={v.staffTo} onChange={(e) => set({ staffTo: e.target.value })} />}</Field>
-            </div>
-          )}
           <Field label="Name customers see" hint="Shown as the sender in their inbox.">
             {(p) => <Input {...p} value={v.senderName} maxLength={60} onChange={(e) => set({ senderName: e.target.value })} />}
           </Field>
@@ -82,7 +66,7 @@ export default function EmailDetailsForm({ initial, suggestion }: { initial: Ema
             <p className="break-all text-xs text-text-soft">Replying goes to {mine || "your studio email"}</p>
           </div>
           <div className="card grid gap-1 p-5">
-            <p className="break-all text-xs text-text-soft">You get, at {alerts || "your studio email"}</p>
+            <p className="break-all text-xs text-text-soft">You get, at {mine || "your studio email"}</p>
             <p className="text-sm font-semibold">New booking request</p>
             <p className="text-sm">Maria, Sculpt, Monday 9:00 AM</p>
           </div>

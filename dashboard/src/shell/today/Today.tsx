@@ -130,10 +130,10 @@ export default function Today({
               >
                 <Icon name={s.icon} className="h-5 w-5 shrink-0" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">
+                  <span className="block h-5 truncate text-sm font-medium">
                     {s.title}
                   </span>
-                  <span className="block text-[13px] text-text-soft">
+                  <span className="line-clamp-2 min-h-10 text-[13px] leading-5 text-text-soft">
                     {offerFor(s.id)?.line}
                   </span>
                   <SystemPoints points={offerFor(s.id)?.points} />

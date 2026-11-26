@@ -120,12 +120,14 @@ export default function SystemsGrid({
                   >
                     <Icon name={o.icon} className="h-5 w-5 shrink-0 opacity-70" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{o.name}</span>
-                      <span className="block text-[13px]">{o.line}</span>
+                      <span className="flex h-5 items-center gap-2">
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium">{o.name}</span>
+                        <span className="shrink-0 rounded-md bg-selected px-2 py-0.5 text-xs font-medium">{o.soon ? "Coming soon" : "Not installed"}</span>
+                        <Icon name="chevron-down" className={`h-4 w-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`} />
+                      </span>
+                      <span className="line-clamp-2 min-h-10 text-[13px] leading-5">{o.line}</span>
                       <SystemPoints points={o.points} />
                     </span>
-                    <span className="shrink-0 rounded-md bg-selected px-2 py-0.5 text-xs font-medium">{o.soon ? "Coming soon" : "Not installed"}</span>
-                    <Icon name="chevron-down" className={`h-4 w-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`} />
                   </button>
                 </li>
                 {/* A full-width strip under the row. The grid is "dense", so the cards after it still fill the row above. */}
@@ -159,11 +161,13 @@ export default function SystemsGrid({
             >
               <Icon name="plus" className="h-5 w-5 shrink-0 opacity-70" />
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-text">Made for your business</span>
-                <span className="block text-[13px]">Need it to work your way, or something not listed here?</span>
+                <span className="flex h-5 items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-text">Made for your business</span>
+                  <span className="shrink-0 text-xs font-semibold text-accent-ink">Message me</span>
+                </span>
+                <span className="line-clamp-2 min-h-10 text-[13px] leading-5">Need it to work your way, or something not listed here?</span>
                 <SystemPoints points={["Your own words", "Extra details", "Something new"]} />
               </span>
-              <span className="shrink-0 text-xs font-semibold text-accent-ink">Message me</span>
             </a>
           </li>
         )}
