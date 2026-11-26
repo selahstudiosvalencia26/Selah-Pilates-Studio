@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { databaseOn, photoBase } from "@/kit/database";
-import { canSave } from "@/kit/session";
+import { signedIn } from "@/kit/session";
 import { uploadsDir } from "@/systems/content/store";
 
 // Shows a saved website photo inside the dashboard, so the owner sees what they added. The photo files live in the website's folder,
@@ -13,8 +13,8 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ file: string }> },
 ) {
-  // On a live site only a signed-in owner gets this far (the middleware), and it is checked again here.
-  if (!(await canSave())) return new Response(null, { status: 404 });
+  // On a live site only someone signed in gets this far (the middleware), and it is checked again here.
+  if (!(await signedIn())) return new Response(null, { status: 404 });
   const { file } = await params;
   if (!/^[a-f0-9]{12}\.webp$/.test(file))
     return new Response(null, { status: 404 });

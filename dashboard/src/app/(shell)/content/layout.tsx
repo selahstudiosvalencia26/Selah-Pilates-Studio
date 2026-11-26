@@ -1,4 +1,5 @@
-import { EVERYTHING, permissionsOf } from "@/kit/permissions";
+import { permissionsOf } from "@/kit/permissions";
+import { myPermissions } from "@/kit/session";
 import PageHeader from "@/shell/frame/PageHeader";
 import SystemTabs from "@/shell/frame/SystemTabs";
 import { sectionsOf } from "@/shell/menu";
@@ -7,14 +8,14 @@ import PublishNote from "@/systems/content/PublishNote";
 
 // Website: what the public site shows. The tabs are the pages listed in the system's description file. Sign-in is not built yet,
 // so the sample owner stands in for the person.
-export default function WebsiteLayout({
+export default async function WebsiteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const found = loadSystems().systems.find((s) => s.id === "content");
   const sections = found
-    ? sectionsOf(found, permissionsOf([[EVERYTHING]]))
+    ? sectionsOf(found, permissionsOf([await myPermissions()]))
     : [];
   return (
     <>

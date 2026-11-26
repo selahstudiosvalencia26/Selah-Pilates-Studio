@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { databaseOn } from "@/kit/database";
 import { fail } from "@/kit/errors";
 import { parseAmount } from "@/kit/money";
 import { EVERYTHING, can, permissionsOf } from "@/kit/permissions";
 import { attempt, err, type Result } from "@/kit/result";
-import { signedInOwner } from "@/kit/session";
+import { canSave } from "@/kit/session";
 import { permissionFor, type Action } from "./rules";
 import { METHODS, fieldsSchema, noteSchema, settingsSchema, STATUSES, type Status } from "./schema";
 import { addBooking, bookClass, cancelBooking, confirmBooking, declineBooking, editBooking, finishBooking, recordDeposit, removeBooking, restoreBooking, saveSettings, saveTimetable } from "./service";
@@ -15,14 +14,13 @@ import { addBooking, bookClass, cancelBooking, confirmBooking, declineBooking, e
 // What staff can do, as actions the screens call. Each one checks who may do it, checks the input again (the form can be bypassed),
 // then hands over to the service. Nobody is signed in on a live site until sign-in is connected, so on a live site every action refuses.
 // While building, the sample owner stands in for the person: `whoIsAsking` is the one place that changes when sign-in lands.
-const NOT_CONNECTED = "Saving is not connected yet.";
 const whoIsAsking = () => permissionsOf([[EVERYTHING]]);
 
 const firstProblem = (issues: { message: string }[]) => issues[0]?.message ?? "Check the details and try again.";
 
 async function guard(permission: string, run: () => Promise<unknown>): Promise<Result<undefined>> {
-  // On a live site: only with the database set up, and only for a signed-in owner. Checked here, on the server, every time.
-  if (process.env.NODE_ENV === "production" && !(databaseOn() && (await signedInOwner()))) return err(NOT_CONNECTED);
+  // On a live site: only with the database set up, and only for someone whose role allows it. Checked here, on the server, every time.
+  if (!(await canSave(permission))) return err("Your role does not allow this. Ask the owner.");
   if (!can(whoIsAsking(), permission)) return err("You do not have permission to do this.");
   const done = await attempt(run, (e) => console.error("booking action failed", e instanceof Error ? e.message : "unknown"));
   if (done.ok) revalidatePath("/booking", "layout");

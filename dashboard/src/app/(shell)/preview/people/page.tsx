@@ -1,26 +1,17 @@
+import { notFound } from "next/navigation";
+import { getBusiness } from "@/kit/business";
+import { isOwnerNow } from "@/kit/session";
 import { allowedEmails } from "@/lib/auth/config";
-import { currentAvatar } from "@/shell/account/status";
-import PeopleManager from "@/shell/people/PeopleManager";
-import { loadSystems } from "@/shell/registry";
+import { getBranding } from "@/shell/branding/server";
+import Team from "@/shell/people/Team";
+import { readMembers, readRoles } from "@/shell/people/teamStore";
 
-// People, for the owner and managers: who has an account, their roles, and what that lets them do in each system.
+export const dynamic = "force-dynamic";
+
+// People, for the owner: who can sign in, with which role.
 export default async function PeoplePage() {
-  // Live: the real list of who can sign in. No sample people there.
-  if (process.env.NODE_ENV === "production") {
-    return (
-      <div className="grid gap-4">
-        <p className="max-w-2xl text-sm text-text-soft">These emails can sign in, and each can do everything. To add or remove someone, ask the builder.</p>
-        <ul className="grid gap-3">
-          {allowedEmails().map((email) => (
-            <li key={email} className="flex items-center justify-between gap-4 rounded-xl border border-border p-4">
-              <span className="min-w-0 break-words text-sm font-medium">{email}</span>
-              <span className="shrink-0 text-xs text-text-soft">Owner</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-  const { systems } = loadSystems();
-  return <PeopleManager systems={systems} avatarUrl={await currentAvatar()} />;
+  if (!(await isOwnerNow())) notFound();
+  const [members, roles, look] = await Promise.all([readMembers(), readRoles(), getBranding()]);
+  const owners = allowedEmails();
+  return <Team owners={owners.length ? owners : ["owner@example.com"]} members={members} roles={roles} business={look.name || getBusiness().name} />;
 }

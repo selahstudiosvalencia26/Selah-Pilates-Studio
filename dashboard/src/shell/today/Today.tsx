@@ -17,25 +17,23 @@ export default function Today({
   systems,
   installHref,
   warning,
-  canInvite = true,
+  setup = true,
 }: {
   name: string;
   systems: MenuItem[];
   installHref?: string;
-  canInvite?: boolean; // inviting staff is not available yet on a live site
+  setup?: boolean; // the owner sees the first steps and what else can be added
   warning?: { words: string; href: string }; // something that needs the owner, such as the domain running out
 }) {
   // What this dashboard does not have yet, shown greyed out so the owner can see what exists. Not links: nothing can be opened.
-  const more = notAdded(systems.map((s) => s.id));
+  const more = setup ? notAdded(systems.map((s) => s.id)) : [];
   const steps: Step[] = [
     {
       title: "Add your business name and logo",
       hint: "So your team sees your name, not ours.",
       href: "/preview/settings",
     },
-    ...(canInvite
-      ? [{ title: "Invite a staff member", hint: "They sign in with a code sent to their email.", href: "/preview/people" }]
-      : []),
+    { title: "Add your team", hint: "Give each person a sign-in and choose what they can do.", href: "/preview/people" },
     installHref
       ? {
           title: "Add what you need",
@@ -77,6 +75,7 @@ export default function Today({
       </section>
       )}
 
+      {setup && (
       <section aria-labelledby="first-steps">
         <h2 id="first-steps" className="text-base font-semibold">
           Get started
@@ -115,6 +114,7 @@ export default function Today({
           ))}
         </ol>
       </section>
+      )}
 
       <section aria-labelledby="your-business" className="grid gap-3">
         <SystemsGrid
@@ -143,7 +143,7 @@ export default function Today({
           ))}
         </SystemsGrid>
         {/* An owner has the "Message me" link above. The builder gets the button to add a system; an empty list keeps its own line. */}
-        {(installHref || more.length === 0) && (
+        {setup && (installHref || more.length === 0) && (
           <div>
             <AddSystemHint
               installHref={installHref}

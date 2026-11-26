@@ -1,4 +1,5 @@
-import { EVERYTHING, permissionsOf } from "@/kit/permissions";
+import { permissionsOf } from "@/kit/permissions";
+import { myPermissions } from "@/kit/session";
 import PageHeader from "@/shell/frame/PageHeader";
 import SystemTabs from "@/shell/frame/SystemTabs";
 import { sectionsOf } from "@/shell/menu";
@@ -10,7 +11,7 @@ export default async function BookingLayout({ children }: { children: React.Reac
   const found = loadSystems().systems.find((s) => s.id === "booking");
   const { settings } = await readData();
   // A venue has no weekly classes, so it never shows that tab.
-  const sections = (found ? sectionsOf(found, permissionsOf([[EVERYTHING]])) : []).filter((s) => settings.mode === "classes" || !["/booking/classes", "/booking/schedule"].includes(s.href));
+  const sections = (found ? sectionsOf(found, permissionsOf([await myPermissions()])) : []).filter((s) => settings.mode === "classes" || !["/booking/classes", "/booking/schedule"].includes(s.href));
   return (
     <>
       <PageHeader title="Bookings" description={settings.mode === "classes" ? "Who is booked into your classes." : "Requests, dates and deposits for your venue."} />

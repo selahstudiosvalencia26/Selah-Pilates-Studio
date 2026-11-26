@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isAllowed, supabaseSettings } from "./config";
-import { databaseReady, openOnLive } from "./livePages";
+import { accessFor } from "./access";
+import { supabaseSettings } from "./config";
+import { databaseReady, mayOpen, openOnLive } from "./livePages";
 
 // Runs before every page: keeps the session fresh and sends anyone who is not signed in to the sign-in screen. Pages check again
 // on the server, so this is the first lock, not the only one.
@@ -30,8 +31,13 @@ export async function guardRequest(request: NextRequest): Promise<NextResponse> 
   const path = request.nextUrl.pathname;
   const open = OPEN.some((p) => path === p || path.startsWith(`${p}/`));
   if (open) return response;
-  if (isAllowed(data.user?.email)) {
-    if (process.env.NODE_ENV !== "production" || path.startsWith("/api/") || openOnLive(path, databaseReady())) return response;
+  const who = await accessFor(data.user?.email);
+  if (who) {
+    if (process.env.NODE_ENV !== "production") return response;
+    // On a temporary password the only place to go is the page that replaces it.
+    if (who.mustChange && path !== "/welcome") return NextResponse.redirect(new URL("/welcome", request.url));
+    if (path.startsWith("/api/")) return response; // each of these checks for itself
+    if (openOnLive(path, databaseReady()) && mayOpen(path, who)) return response;
     return NextResponse.redirect(new URL("/preview", request.url));
   }
 

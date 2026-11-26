@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { err, ok, type Result } from "@/kit/result";
 import { canSave } from "@/kit/session";
+import { databaseOn } from "@/kit/database";
 import { hoursSchema, siteSchema } from "./schema";
 import { isPageKind, PAGES } from "./site/pages";
 import { PhotoError, savePhotoChanges, type Change } from "./photos";
@@ -23,7 +24,8 @@ import { z } from "zod";
 
 // Save what the owner typed. The same checks run here as in the form, because the form can be bypassed. On a live site every save
 // also asks, on the server, whether the database is set up and an owner is signed in.
-const NOT_CONNECTED = "Saving is not connected yet.";
+// Why a save was refused, in words the person can act on.
+const refused = () => (databaseOn() ? "Your role lets you look, not change this. Ask the owner." : "Saving is not connected yet.");
 const firstProblem = (issues: { path: PropertyKey[]; message: string }[]) => {
   const i = issues[0];
   return i ? { field: String(i.path[0] ?? ""), message: i.message } : null;
@@ -32,7 +34,7 @@ const firstProblem = (issues: { path: PropertyKey[]; message: string }[]) => {
 export async function saveSite(
   input: unknown,
 ): Promise<Result<undefined> & { field?: string }> {
-  if (!(await canSave())) return err(NOT_CONNECTED);
+  if (!(await canSave("content.edit"))) return err(refused());
   const parsed = siteSchema.safeParse(input);
   if (!parsed.success) {
     const p = firstProblem(parsed.error.issues);
@@ -54,7 +56,7 @@ export async function saveSite(
 export async function saveHours(
   input: unknown,
 ): Promise<Result<undefined> & { field?: string }> {
-  if (!(await canSave())) return err(NOT_CONNECTED);
+  if (!(await canSave("content.edit"))) return err(refused());
   const parsed = hoursSchema.safeParse(input);
   if (!parsed.success) {
     const p = firstProblem(parsed.error.issues);
@@ -78,7 +80,7 @@ export async function savePage(
   kind: string,
   input: unknown,
 ): Promise<Result<undefined> & { field?: string }> {
-  if (!(await canSave())) return err(NOT_CONNECTED);
+  if (!(await canSave("content.edit"))) return err(refused());
   if (!isPageKind(kind)) return err("That page is not known.");
   const parsed = PAGES[kind].schema.safeParse(input);
   if (!parsed.success) {
@@ -114,7 +116,7 @@ const changesSchema = z
   .max(PHOTO_LIMITS.perSave);
 
 export async function savePhotos(form: FormData): Promise<Result<undefined>> {
-  if (!(await canSave())) return err(NOT_CONNECTED);
+  if (!(await canSave("content.edit", "booking.manage"))) return err(refused());
   let changes: Change[];
   try {
     const raw = form.get("changes");
@@ -145,7 +147,7 @@ export async function savePhotos(form: FormData): Promise<Result<undefined>> {
 export async function saveClasses(
   input: unknown,
 ): Promise<Result<{ slugs: string[] }> & { field?: string }> {
-  if (!(await canSave())) return err(NOT_CONNECTED);
+  if (!(await canSave("booking.manage"))) return err(refused());
   const parsed = classListSchema.safeParse(input);
   if (!parsed.success) {
     const i = parsed.error.issues[0];
@@ -185,7 +187,7 @@ export async function saveList(
   listId: string,
   input: unknown,
 ): Promise<Result<{ slugs: string[] }> & { field?: string }> {
-  if (!(await canSave())) return err(NOT_CONNECTED);
+  if (!(await canSave("content.edit"))) return err(refused());
   const def = listById(listId);
   if (!def) return err("That list is not known.");
   const parsed = listSchemaFor(def).safeParse(input);

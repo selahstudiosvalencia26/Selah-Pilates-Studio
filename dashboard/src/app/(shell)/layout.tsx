@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { authOn } from "@/lib/auth/config";
 import { currentUser } from "@/lib/auth/server";
 import { EVERYTHING, permissionsOf } from "@/kit/permissions";
+import { myPermissions } from "@/kit/session";
 import { applyOrder, buildMenu, TODAY, type MenuItem } from "@/shell/menu";
 import { getMenuOrder } from "@/shell/menuOrderStore";
 import { getBranding } from "@/shell/branding/server";
@@ -48,13 +49,14 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   const [brand, avatarUrl] = await Promise.all([getBranding(), currentAvatar()]);
 
   const { systems } = loadSystems();
-  const owner = permissionsOf([[EVERYTHING]]);
+  const mine = permissionsOf([await myPermissions()]);
+  const owner = mine.has(EVERYTHING);
   const order = await getMenuOrder();
   const systemsPage = await isOwner(); // the Systems page is in the menu for the owner only
-  const items = [TODAY, ...applyOrder(buildMenu(systems, owner), order), PEOPLE_PAGE, SETTINGS_PAGE, ...(systemsPage ? [SYSTEMS_PAGE] : [])];
+  const items = [TODAY, ...applyOrder(buildMenu(systems, mine), order), ...(owner ? [PEOPLE_PAGE, SETTINGS_PAGE] : []), ...(systemsPage ? [SYSTEMS_PAGE] : [])];
 
   return (
-    <Shell business={brand.name} logoUrl={brand.logoUrl} person={{ name: signedIn?.email ?? "Sample Owner", role: "Owner", avatarUrl }} items={items}>
+    <Shell business={brand.name} logoUrl={brand.logoUrl} person={{ name: signedIn?.name ?? "Sample Owner", role: owner ? "Owner" : "Team member", avatarUrl }} items={items}>
       {children}
     </Shell>
   );

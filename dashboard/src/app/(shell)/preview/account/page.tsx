@@ -4,6 +4,8 @@ import AvatarEditor from "@/shell/account/AvatarEditor";
 import ChangePasswordForm from "@/shell/account/ChangePasswordForm";
 import DevicesList from "@/shell/account/DevicesList";
 import { accountStatus } from "@/shell/account/status";
+import OwnPasswordForm from "@/shell/account/OwnPasswordForm";
+import { currentUser } from "@/lib/auth/server";
 import PageHeader from "@/shell/frame/PageHeader";
 
 export const metadata: Metadata = { title: "Account" };
@@ -40,15 +42,25 @@ function Section({
 }
 
 export default async function AccountPage() {
-  const status = await accountStatus();
-  if (!status && process.env.NODE_ENV === "production") {
+  const person = process.env.NODE_ENV === "production" ? await currentUser() : null;
+  if (person) {
     return (
       <>
         <PageHeader title="Account" description="Your own sign-in details." />
-        <p className="text-sm text-text-soft">To change your password, ask the builder for now.</p>
+        <div className="grid items-start gap-6 lg:grid-cols-2">
+          <div className="card grid gap-2 p-5 text-sm">
+            <p className="font-semibold">{person.name}</p>
+            <p className="break-words text-text-soft">{person.email}</p>
+            <p className="text-text-soft">{person.owner ? "Owner" : "Team member"}</p>
+          </div>
+          <div className="card p-5">
+            <OwnPasswordForm />
+          </div>
+        </div>
       </>
     );
   }
+  const status = await accountStatus();
   if (!status) {
     return (
       <>

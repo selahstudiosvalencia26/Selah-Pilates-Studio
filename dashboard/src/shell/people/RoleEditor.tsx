@@ -1,21 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Icon from "@/kit/Icon";
+import SaveBar, { type SaveMessage } from "@/kit/SaveBar";
 import Tick from "@/kit/Tick";
 import { slideStyle, useSlide } from "@/kit/useSlide";
 import AddSystemHint from "@/shell/systems/AddSystemHint";
 import type { Manifest } from "@/shell/systems/manifest";
 import { defaultRoles, describeLevel, isSensitive, levelOf, levelsFor, setLevel, setPermission, type Role } from "./roles";
 import { buttonClass } from "@/kit/Button";
+import { saveRoles } from "./actions";
 
 // The Roles screen (docs/dashboard/shell-plan.md, section 2). Pick a role, then pick ONE level for each system: None, See, Change,
 // Approve or Everything. That covers nearly everything. "Customize" opens the detailed ticks for the rare exception.
 // Owner is locked. Manager and Staff can be reset. The owner can make more roles ("Cashier").
-// Changes are kept on this screen only until the database is connected.
-export default function RoleEditor({ systems, installHref }: { systems: Manifest[]; installHref?: string }) {
+// Save keeps the roles and applies them to everyone who has them.
+export default function RoleEditor({ systems, saved, installHref }: { systems: Manifest[]; saved: Role[]; installHref?: string }) {
   const start = defaultRoles(systems);
-  const [roles, setRoles] = useState<Role[]>(start);
+  const [roles, setRoles] = useState<Role[]>(saved);
+  const [kept, setKept] = useState(() => JSON.stringify(saved));
+  const [message, setMessage] = useState<SaveMessage>(null);
+  const [pending, startSaving] = useTransition();
+  const dirty = JSON.stringify(roles) !== kept;
+  const save = () =>
+    startSaving(async () => {
+      const r = await saveRoles(roles);
+      if (r.ok) setKept(JSON.stringify(roles));
+      setMessage(r.ok ? { text: "Saved." } : { text: r.message, bad: true });
+    });
   const [current, setCurrent] = useState("staff");
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
@@ -38,7 +50,7 @@ export default function RoleEditor({ systems, installHref }: { systems: Manifest
   };
 
   return (
-    <div className="grid gap-8">
+    <div className="flex grow flex-col gap-8">
       <div ref={slide.ref} className="relative flex flex-wrap items-center gap-2" role="tablist" aria-label="Roles">
         <span aria-hidden className="absolute left-0 top-0 rounded-lg bg-selected transition-[transform,width,height] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none" style={slideStyle(slide.box, slide.ready)} />
         {roles.map((r) => (
@@ -146,16 +158,14 @@ export default function RoleEditor({ systems, installHref }: { systems: Manifest
         </ul>
       )}
 
-      {systems.length > 0 && (
-      <div className="flex flex-wrap items-center gap-3">
-        {role.builtin && !role.locked && (
+      {systems.length > 0 && role.builtin && !role.locked && (
+        <div>
           <button type="button" onClick={reset} className={buttonClass("quiet")}>
             Reset to the usual
           </button>
-        )}
-        <p className="text-[13px] text-text-soft">{process.env.NODE_ENV === "production" ? "Choices here are not saved yet." : "Changes apply when saved and are written to the activity log. Saving turns on when the database is connected."}</p>
-      </div>
+        </div>
       )}
+      <SaveBar dirty={dirty} pending={pending} message={dirty ? null : message} label="Save roles" onSave={save} />
     </div>
   );
 }

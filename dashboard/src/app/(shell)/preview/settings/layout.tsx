@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { isOwnerNow } from "@/kit/session";
 import PageHeader from "@/shell/frame/PageHeader";
 import SystemTabs from "@/shell/frame/SystemTabs";
 
@@ -8,7 +10,8 @@ const SETTINGS_SECTIONS = [
   { title: "Email", href: "/preview/settings/email" },
 ];
 
-export default function SettingsLayout({ children }: { children: React.ReactNode }) {
+export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
+  if (!(await isOwnerNow())) notFound();
   return (
     <>
       <PageHeader title="Settings" description="How your dashboard looks, the order of its menu, and your email." />

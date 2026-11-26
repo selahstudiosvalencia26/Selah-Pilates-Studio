@@ -10,7 +10,7 @@ const PEOPLE_SECTIONS = [
 export default function PeopleLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <PageHeader title="People" description={process.env.NODE_ENV === "production" ? "Who can sign in, and what roles will do." : "Invite your team and choose what each person can do."} />
+      <PageHeader title="People" description="Add your team and choose what each person can do." />
       <SystemTabs name="People" sections={PEOPLE_SECTIONS} />
       {children}
     </>
