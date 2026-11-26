@@ -88,8 +88,9 @@ export default function ClassTimeDialog({ draft, names, days, problem, onChange,
         <p className={labelCls}>Time</p>
         <div role="radiogroup" aria-label="Hour" className="grid grid-cols-4 gap-1.5 sm:grid-cols-9">
           {HOURS.map((h) => (
-            <button key={h} type="button" role="radio" aria-checked={Number(hour) === h} onClick={() => onChange({ ...draft, time: `${two(h)}:${minute}` })} className={chip(Number(hour) === h)}>
-              {hourWords(h)}
+            <button key={h} type="button" role="radio" aria-checked={Number(hour) === h} onClick={() => onChange({ ...draft, time: `${two(h)}:${minute}` })} className={`${chip(Number(hour) === h)} grid content-center justify-items-center leading-tight`}>
+              <span>{h % 12 || 12} </span>
+              <span className="text-xs">{h < 12 ? "AM" : "PM"}</span>
             </button>
           ))}
         </div>
